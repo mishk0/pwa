@@ -5,6 +5,7 @@ html, body {
     width: 100%;
     font-family: "Yandex Sans", "Helvetica", sans-serif;
     color: #444;
+    font-size: 22px;
 }
 
 .header {
@@ -39,6 +40,28 @@ html, body {
     top: 50%;
     margin-left: -16px;
     animation:rotate 1s infinite linear
+}
+
+.currency {
+    display: flex;
+    padding: 5px;
+}
+
+.currency-name {
+    flex: 1
+}
+
+.currency-rate {
+    border-radius: 3px;
+    padding: 3px;
+}
+
+.currency-rate_up {
+    background: #0f0;
+}
+
+.currency-rate_down {
+    background: #f00;
 }
 
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
