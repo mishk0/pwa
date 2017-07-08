@@ -3,24 +3,42 @@ html, body {
     margin: 0;
     height: 100%;
     width: 100%;
-    font-family: "Yandex Sans", "Helvetica", sans-serif;
-    color: #444;
+    font-family: "Helvetica", sans-serif;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 30px;
+}
+
+body {
+    background: #000 url(bg.png);
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+}
+
+.app {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    overflow: scroll;
+    -webkit-overflow-scrolling: touch;
 }
 
 .header {
-    border-bottom: 2px solid #ffca00;
-    padding: 5px 10px;
+    padding: 5px 20px 5px 10px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     align-content: center;
+    text-align: center;
 }
 
 .header-title {
     margin: 0;
     padding: 0;
     flex: 1;
-    font-size: 25px;
+    font-size: 35px;
     font-weight: normal;
 }
 
@@ -28,9 +46,14 @@ html, body {
     border: none;
     outline: none;
     cursor: pointer;
-    background: url("refresh.svg");
-    width: 44px;
-    height: 44px;
+    width: 22px;
+    height: 22px;
+    background: none;
+}
+
+.refresh-pic {
+    width: 22px;
+    height: 22px;
 }
 
 .loader {
@@ -39,6 +62,34 @@ html, body {
     top: 50%;
     margin-left: -16px;
     animation:rotate 1s infinite linear
+}
+
+.currency {
+    display: flex;
+    padding: 5px 20px;
+}
+
+.currency-name {
+    flex: 1
+}
+
+.currency-rate {
+    border-radius: 3px;
+    padding: 3px 7px;
+    font-size: 25px;
+}
+
+.currency-rate_up {
+    background: rgba(0, 255, 0, 0.5);
+}
+
+.currency-rate_down {
+    background: rgba(255, 0, 0, 0.5);
+}
+
+.lastUpdate {
+    font-size: 12px;
+    padding-left: 20px;
 }
 
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
