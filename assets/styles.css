@@ -1,0 +1,44 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+    font-family: "Yandex Sans", "Helvetica", sans-serif;
+    color: #444;
+}
+
+.header {
+    border-bottom: 2px solid #ffca00;
+    padding: 5px 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    align-content: center;
+}
+
+.header-title {
+    margin: 0;
+    padding: 0;
+    flex: 1;
+    font-size: 25px;
+    font-weight: normal;
+}
+
+.refresh {
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: url("refresh.svg");
+    width: 44px;
+    height: 44px;
+}
+
+.loader {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    margin-left: -16px;
+    animation:rotate 1s infinite linear
+}
+
+@keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
