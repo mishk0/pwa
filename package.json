@@ -1,0 +1,29 @@
+{
+  "name": "pwa",
+  "version": "0.0.0",
+  "description": "simple pwa app",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server -o"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mishk0/pwa.git"
+  },
+  "keywords": [
+    "pwa",
+    "shri"
+  ],
+  "author": {
+    "name": "Mikhail Mokrushin",
+    "email": "mokrushin.ms@ya.ru"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mishk0/pwa/issues"
+  },
+  "homepage": "https://github.com/mishk0/pwa#readme",
+  "devDependencies": {
+    "http-server": "^0.10.0"
+  }
+}
