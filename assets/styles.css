@@ -10,7 +10,7 @@ html, body {
 
 .header {
     border-bottom: 2px solid #ffca00;
-    padding: 5px 10px;
+    padding: 5px 20px 5px 10px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -29,9 +29,14 @@ html, body {
     border: none;
     outline: none;
     cursor: pointer;
-    background: url("refresh.svg");
-    width: 44px;
-    height: 44px;
+    width: 22px;
+    height: 22px;
+    background: none;
+}
+
+.refresh-pic {
+    width: 22px;
+    height: 22px;
 }
 
 .loader {
@@ -54,6 +59,7 @@ html, body {
 .currency-rate {
     border-radius: 3px;
     padding: 3px;
+    font-size: 18px;
 }
 
 .currency-rate_up {
