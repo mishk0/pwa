@@ -1,7 +1,7 @@
 'use strict';
 
 const CACHE_NAME = 'v1';
-var API_URL = 'http://api.fixer.io';
+var API_URL = 'https://api.fixer.io';
 
 var filesToCache = [
     './',

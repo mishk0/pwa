@@ -1,6 +1,6 @@
 (function() {
     'use strict';
-    var API_URL = 'http://api.fixer.io';
+    var API_URL = 'https://api.fixer.io';
     var AUTO_UPDATE_SEC = 5;
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
