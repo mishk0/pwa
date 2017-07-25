@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Currency PWA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="assets/styles.css">
+    <link rel="manifest" href="manifest.json">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Currency PWA">
+    <link rel="apple-touch-icon" href="assets/icons/icon152.png">
+    <meta name="msapplication-TileImage" content="assets/icons/icon152.png">
+    <meta name="msapplication-TileColor" content="#ffca00">
+</head>
+<body>
+<div class="app">
+    <header class="header">
+        <h1 class="header-title">Exchange rates</h1>
+    </header>
+    <span class="lastUpdate">last update: <span class="lastUpdate_date"></span></span>
+    <div class="currencies"></div>
+    <svg class="loader" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="#FFFFFF" d="M16 0v1.846c7.817 0 14.154 6.337 14.154 14.154s-6.337 14.154-14.154 14.154v1.846c8.837 0 16-7.163 16-16s-7.163-16-16-16z"/></svg>
+</div>
+<!-- put app js-->
+</body>
+</html>
