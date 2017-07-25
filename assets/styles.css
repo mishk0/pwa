@@ -9,9 +9,10 @@ html, body {
 }
 
 body {
-    background-image: url(bg.jpeg);
+    background-image: url(bg.png);
     background-attachment: fixed;
     background-position: center;
+    background-size: cover;
 }
 
 .header {

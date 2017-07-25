@@ -8,11 +8,12 @@ var filesToCache = [
     './index.html',
     './assets/app.js',
     './assets/styles.css',
-    './assets/bg.jpeg'
+    './assets/bg.png'
 ];
 
 self.addEventListener('install', function(e) {
     e.waitUntil(
+        self.skipWaiting(),
         caches.open(CACHE_NAME).then(function(cache) {
             return cache.addAll(filesToCache);
         })
