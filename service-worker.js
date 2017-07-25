@@ -7,7 +7,8 @@ var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/styles.css'
+    './assets/styles.css',
+    './assets/bg.jpeg'
 ];
 
 self.addEventListener('install', function(e) {
@@ -32,20 +33,20 @@ self.addEventListener('activate', function(e) {
     );
 });
 
-//self.addEventListener('fetch', function(e) {
-//    if (isApiCall(e.request.url)) {
-//        e.respondWith(networkFirst(e.request));
-//    } else {
-//        e.respondWith(cacheFirst(e.request));
-//    }
-//});
+self.addEventListener('fetch', function(e) {
+    if (isApiCall(e.request.url)) {
+        e.respondWith(networkFirst(e.request));
+    } else {
+        e.respondWith(cacheFirst(e.request));
+    }
+});
 
 function networkFirst(req) {
     return caches.open(CACHE_NAME).then(function(cache) {
         return fetch(req).then(function(res){
             cache.put(req.url, res.clone());
             return res;
-        });
+        }).catch(() => caches.match(req));
     })
 }
 
