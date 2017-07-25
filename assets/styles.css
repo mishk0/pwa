@@ -3,7 +3,7 @@ html, body {
     margin: 0;
     height: 100%;
     width: 100%;
-    font-family: "Yandex Sans", "Helvetica", sans-serif;
+    font-family: "Helvetica", sans-serif;
     color: rgba(255, 255, 255, 0.8);
     font-size: 30px;
 }
@@ -16,7 +16,6 @@ body {
 }
 
 .header {
-    //border-bottom: 2px solid #ffca00;
     padding: 5px 20px 5px 10px;
     margin-bottom: 10px;
     display: flex;
