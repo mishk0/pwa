@@ -15,6 +15,15 @@ body {
     background-size: cover;
 }
 
+.app {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    overflow: scroll;
+}
+
 .header {
     padding: 5px 20px 5px 10px;
     margin-bottom: 10px;
