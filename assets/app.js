@@ -5,7 +5,7 @@
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
-    var _currencies;
+    var _lastData;
 
     function init() {
         updateCurrency();
@@ -15,22 +15,10 @@
         }, AUTO_UPDATE_SEC * 1000);
     }
 
-    function getLastData() {
-        if (!_currencies) {
-            _currencies = localStorage._currencies && JSON.parse(localStorage._currencies);
-        }
-
-        return _currencies;
-    }
-
-    function updateData(data) {
-        localStorage._currencies = JSON.stringify(data);
-    }
-
     function updateCurrency() {
         return getCurrency().then(data => {
             render(data);
-            updateData(data);
+            _lastData = data;
         });
     }
 
@@ -49,8 +37,8 @@
 
     function processRates(data) {
         return Object.keys(data.rates).reduce((res, currency) => {
-                //res.rates[currency] = res.rates[currency].toFixed(3);
-                res.rates[currency] = Math.random().toFixed(3);
+                res.rates[currency] = (1/res.rates[currency]).toFixed(2);
+                //res.rates[currency] = (1/Math.random()).toFixed(3);
 
                 return res;
             }, data);
@@ -59,12 +47,11 @@
     function createTmpl(data) {
         return Object.keys(data).reduce((res, item) => {
             var additionClass = '';
-            var lastData = getLastData();
 
-            if (lastData && lastData.rates) {
-                if (data[item] > lastData.rates[item]) {
+            if (_lastData && _lastData.rates) {
+                if (data[item] > _lastData.rates[item]) {
                     additionClass = 'currency-rate_up';
-                } else if (data[item] < lastData.rates[item]) {
+                } else if (data[item] < _lastData.rates[item]) {
                     additionClass = 'currency-rate_down';
                 }
             }

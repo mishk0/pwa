@@ -23,15 +23,7 @@ self.addEventListener('install', function(e) {
 self.addEventListener('activate', function(e) {
     self.clients.claim();
 
-    e.waitUntil(
-        caches.keys().then(function(keys) {
-            return Promise.all(keys.map(function(key) {
-                if (key !== CACHE_NAME) {
-                    return caches.delete(key);
-                }
-            }));
-        })
-    );
+    e.waitUntil(deleteObsoleteAssets());
 });
 
 self.addEventListener('fetch', function(e) {
@@ -42,22 +34,98 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
+// v1
+//function networkFirst(req) {
+//    return caches.open(CACHE_NAME).then(function(cache) {
+//        return fetch(req).then(function(res){
+//            cache.put(req, res.clone());
+//            return res;
+//        })
+//    })
+//}
+
+// v1
+//function cacheFirst(req) {
+//    return caches.match(req).then(function(cache) {
+//        return cache || fetch(req);
+//    })
+//}
+
+//v2
 function networkFirst(req) {
     return caches.open(CACHE_NAME).then(function(cache) {
         return fetch(req).then(function(res){
-            cache.put(req.url, res.clone());
+            cache.put(req, res.clone());
             return res;
-        }).catch(() => caches.match(req));
+        }).catch(err => {
+            console.log('Error on networkFirst', err);
+
+            return caches.match(req);
+        });
     })
 }
 
+//v2
 function cacheFirst(req) {
     return caches.match(req).then(function(cache) {
-        return cache || fetch(req);
+        if (cache) {
+            return cache;
+        }
+
+        return caches.open(CACHE_NAME).then(cache => {
+            return fetch(req).then(function(res) {
+                cache.put(req, res.clone());
+                return res;
+            });
+        });
     })
 }
 
 function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
 }
+
+//v1
+function deleteObsoleteAssets() {
+    return caches.keys().then(function(keys) {
+        return Promise.all(keys.map(function(key) {
+            if (key !== CACHE_NAME) {
+                return caches.delete(key);
+            }
+        }));
+    })
+}
+
+// v2
+//function cacheNewAssets(cacheName, assets) {
+//    return caches.open(cacheName).then(cache => {
+//        return cache.keys().then(requests => {
+//            var cachedAssets = requests.map(getRequestUrl);
+//            var newAssets = assets.filter(path => cachedAssets.indexOf(path) === -1);
+//
+//            return cache.addAll(newAssets);
+//        })
+//    })
+//}
+
+// v2
+//function deleteObsoleteAssets(cacheName, assets) {
+//    return Promise.all([
+//        caches.keys()
+//            .then(names => {
+//                return Promise.all(
+//                    names.filter(name => name !== cacheName)
+//                        .map(name => caches.delete(name))
+//                );
+//            }),
+//        caches.open(cacheName).then(cache => {
+//            return cache.keys().then(requests => {
+//                var cachedAssets = requests.map(getRequestUrl);
+//                var oldAssets = cachedAssets.filter(path => assets.indexOf(path) === -1);
+//
+//                return Promise.all(oldAssets.map(asset => cache.delete(asset)));
+//            })
+//        })
+//    ])
+//}
 
