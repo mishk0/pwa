@@ -4,24 +4,31 @@ html, body {
     height: 100%;
     width: 100%;
     font-family: "Yandex Sans", "Helvetica", sans-serif;
-    color: #444;
-    font-size: 22px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 30px;
+}
+
+body {
+    background-image: url(bg.jpeg);
+    background-attachment: fixed;
+    background-position: center;
 }
 
 .header {
-    border-bottom: 2px solid #ffca00;
+    //border-bottom: 2px solid #ffca00;
     padding: 5px 20px 5px 10px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
     align-content: center;
+    text-align: center;
 }
 
 .header-title {
     margin: 0;
     padding: 0;
     flex: 1;
-    font-size: 25px;
+    font-size: 35px;
     font-weight: normal;
 }
 
@@ -49,7 +56,7 @@ html, body {
 
 .currency {
     display: flex;
-    padding: 5px;
+    padding: 5px 20px;
 }
 
 .currency-name {
@@ -58,16 +65,21 @@ html, body {
 
 .currency-rate {
     border-radius: 3px;
-    padding: 3px;
-    font-size: 18px;
+    padding: 3px 7px;
+    font-size: 25px;
 }
 
 .currency-rate_up {
-    background: #0f0;
+    background: rgba(0, 255, 0, 0.5);
 }
 
 .currency-rate_down {
-    background: #f00;
+    background: rgba(255, 0, 0, 0.5);
+}
+
+.lastUpdate {
+    font-size: 12px;
+    padding-left: 20px;
 }
 
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}

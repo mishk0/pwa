@@ -7,7 +7,6 @@ var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/refresh.svg',
     './assets/styles.css'
 ];
 
@@ -33,13 +32,13 @@ self.addEventListener('activate', function(e) {
     );
 });
 
-self.addEventListener('fetch', function(e) {
-    if (isApiCall(e.request.url)) {
-        e.respondWith(networkFirst(e.request));
-    } else {
-        e.respondWith(cacheFirst(e.request));
-    }
-});
+//self.addEventListener('fetch', function(e) {
+//    if (isApiCall(e.request.url)) {
+//        e.respondWith(networkFirst(e.request));
+//    } else {
+//        e.respondWith(cacheFirst(e.request));
+//    }
+//});
 
 function networkFirst(req) {
     return caches.open(CACHE_NAME).then(function(cache) {
