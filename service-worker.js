@@ -34,24 +34,6 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
-// v1
-//function networkFirst(req) {
-//    return caches.open(CACHE_NAME).then(function(cache) {
-//        return fetch(req).then(function(res){
-//            cache.put(req, res.clone());
-//            return res;
-//        })
-//    })
-//}
-
-// v1
-//function cacheFirst(req) {
-//    return caches.match(req).then(function(cache) {
-//        return cache || fetch(req);
-//    })
-//}
-
-//v2
 function networkFirst(req) {
     return caches.open(CACHE_NAME).then(function(cache) {
         return fetch(req).then(function(res){
@@ -65,7 +47,6 @@ function networkFirst(req) {
     })
 }
 
-//v2
 function cacheFirst(req) {
     return caches.match(req).then(function(cache) {
         if (cache) {
@@ -83,17 +64,6 @@ function cacheFirst(req) {
 
 function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
-}
-
-//v1
-function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
-            }
-        }));
-    })
 }
 
 // v2
