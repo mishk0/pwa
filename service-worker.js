@@ -7,8 +7,7 @@ var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/styles.css',
-    './assets/bg.png'
+    './assets/styles.css'
 ];
 
 self.addEventListener('install', function(e) {
@@ -66,36 +65,12 @@ function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
 }
 
-// v2
-//function cacheNewAssets(cacheName, assets) {
-//    return caches.open(cacheName).then(cache => {
-//        return cache.keys().then(requests => {
-//            var cachedAssets = requests.map(getRequestUrl);
-//            var newAssets = assets.filter(path => cachedAssets.indexOf(path) === -1);
-//
-//            return cache.addAll(newAssets);
-//        })
-//    })
-//}
-
-// v2
-//function deleteObsoleteAssets(cacheName, assets) {
-//    return Promise.all([
-//        caches.keys()
-//            .then(names => {
-//                return Promise.all(
-//                    names.filter(name => name !== cacheName)
-//                        .map(name => caches.delete(name))
-//                );
-//            }),
-//        caches.open(cacheName).then(cache => {
-//            return cache.keys().then(requests => {
-//                var cachedAssets = requests.map(getRequestUrl);
-//                var oldAssets = cachedAssets.filter(path => assets.indexOf(path) === -1);
-//
-//                return Promise.all(oldAssets.map(asset => cache.delete(asset)));
-//            })
-//        })
-//    ])
-//}
-
+function deleteObsoleteAssets() {
+    return caches.keys().then(function(keys) {
+        return Promise.all(keys.map(function(key) {
+            if (key !== CACHE_NAME) {
+                return caches.delete(key);
+            }
+        }));
+    })
+}
