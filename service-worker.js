@@ -1,13 +1,14 @@
 'use strict';
 
-const CACHE_NAME = 'v1';
+const CACHE_NAME = 'v2';
 var API_URL = 'https://api.fixer.io';
 
 var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/styles.css'
+    './assets/styles.css',
+    './manifest.json'
 ];
 
 self.addEventListener('install', function(e) {
