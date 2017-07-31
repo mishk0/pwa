@@ -7,8 +7,7 @@ var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/styles.css',
-    './assets/bg.png'
+    './assets/styles.css'
 ];
 
 self.addEventListener('install', function(e) {
