@@ -21,6 +21,7 @@ self.addEventListener('install', function(e) {
                     return caches.match(file)
                         .then((res) => {
                             if (res === undefined) {
+                                console.log('кладем в кеш', file);
                                 cache.add(file);
                             }
                         });
@@ -114,6 +115,7 @@ function deleteObsoleteInCurrentCache() {
                         var path = '.' + url.pathname;
 
                         if (filesToCache.indexOf(path) === -1) {
+                            console.log('удаляем из кеша', path);
                             return cache.delete(req);
                         }
                     }));

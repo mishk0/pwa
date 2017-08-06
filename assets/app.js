@@ -23,9 +23,24 @@
     }
 
     function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
+        return fetchCurrency()
             .then(res => res.json())
             .then(data => processRates(data));
+    }
+
+    function fetchCurrency() {
+        var requestURL = API_URL + '/latest?base=RUB';
+
+        if (!isOnline()) {
+            return window.caches.match(requestURL)
+                .then(function(cache) {
+                    if (cache) {
+                        return cache;
+                    }
+                });
+        } else {
+            return fetch(requestURL);
+        }
     }
 
     function render(data) {
@@ -61,6 +76,10 @@
                 <span class="currency-rate ${additionClass}">${data[item]}</span>
             </div>`;
         }, '');
+    }
+
+    function isOnline() {
+        return navigator.onLine;
     }
 
     if ('serviceWorker' in navigator) {
