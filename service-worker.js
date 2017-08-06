@@ -15,14 +15,23 @@ self.addEventListener('install', function(e) {
     e.waitUntil(
         self.skipWaiting(),
         caches.open(CACHE_NAME).then(function(cache) {
-            return cache.addAll(filesToCache);
+            // добавляем в кеш только новые файлы
+            return Promise.all(
+                filesToCache.map(function(file) {
+                    return caches.match(file)
+                        .then((res) => {
+                            if (res === undefined) {
+                                cache.add(file);
+                            }
+                        });
+                })
+            );
         })
     );
 });
 
 self.addEventListener('activate', function(e) {
     self.clients.claim();
-
     e.waitUntil(deleteObsoleteAssets());
 });
 
@@ -83,7 +92,31 @@ function deleteObsoleteAssets() {
         return Promise.all(keys.map(function(key) {
             if (key !== CACHE_NAME) {
                 return caches.delete(key);
+            } else {
+                // удаляем в текущем кеше то, что отсутствует в списке filesToCache
+                return deleteObsoleteInCurrentCache();
             }
         }));
     })
+}
+
+function deleteObsoleteInCurrentCache() {
+    return caches.open(CACHE_NAME)
+        .then(function(cache) {
+            return cache.keys()
+                .then(function(keys) {
+                    return Promise.all(keys.map(function(req) {
+                        if (isApiCall(req.url)) {
+                            return;
+                        }
+
+                        var url = new URL(req.url);
+                        var path = '.' + url.pathname;
+
+                        if (filesToCache.indexOf(path) === -1) {
+                            return cache.delete(req);
+                        }
+                    }));
+                });
+        });
 }
