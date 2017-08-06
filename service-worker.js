@@ -1,6 +1,7 @@
 'use strict';
 
-const CACHE_NAME = 'v1';
+const CACHE_NAME = 'v3';
+const ORIGIN = location.origin;
 const API_URL = 'https://api.fixer.io';
 
 const filesToCache = [
@@ -8,15 +9,23 @@ const filesToCache = [
     './index.html',
     './assets/app.js',
     './assets/styles.css',
+
 ];
+
+// Статические файлы для кэширования(создано два пустых файла для тестирования "3" и "4" на конце)
+const staticsToCache = [
+    './assets/9c0ceb22f3a74dbdb7bda7dc5410ce54.css',
+];
+
 
 const API_TIMEOUT = 5000;
 
 self.addEventListener('install', function(e) {
+    self.skipWaiting();
+
     e.waitUntil(
-        self.skipWaiting(),
         caches.open(CACHE_NAME).then(function(cache) {
-            return cache.addAll(filesToCache);
+            return cache.addAll(filesToCache).then(() => updateStaticCache());
         })
     );
 });
@@ -91,13 +100,46 @@ function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
 }
 
+// Кэшируем файлы в таблицы assets, если файла с таким хэшом еще нет
+function addFilesToCache(cache) {
+    return Promise.all(staticsToCache.map((fileName) => {
+        return caches.match(fileName).then((res) => {
+            if (res === undefined) {
+                return cache.add(fileName)
+            }
+        });
+    }))
+}
+
+// Удаляем файлы из таблицы assets, если хэш в названии файла не перечислен в списке файлов для кэширования
+function removeFilesFromCache(cache) {
+    return new Promise((resolve) => {
+        cache.keys().then(function(keys) {
+            keys.forEach(function(request) {
+                const fileLocalUrl = '.' + request.url.substring(ORIGIN.length);
+                if(staticsToCache.indexOf(fileLocalUrl) === -1) {
+                    return cache.delete(request);
+                }
+            });
+            resolve(true);
+        });
+    })
+}
+
+// Обновляем кэш в таблице assets
+function updateStaticCache() {
+    caches.open('assets').then(function(cache) {
+        removeFilesFromCache(cache).then(() => addFilesToCache(cache));
+    });
+}
+
+
 function deleteObsoleteAssets() {
     return caches.keys().then(function(keys) {
         return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
+            if (key !== CACHE_NAME && key !== 'assets') {
                 return caches.delete(key);
             }
         }));
     })
 }
-
