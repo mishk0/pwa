@@ -58,7 +58,7 @@ function networkFirst(req, timeout) {
 
 function cacheFirst(req) {
     console.log("Cache first")
-    return caches.match(req).then(function(cache) {
+    return caches.match(req).then(cache => {
         if (cache) {
             return cache;
         }

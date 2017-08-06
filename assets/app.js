@@ -23,9 +23,21 @@
     }
 
     function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
-            .then(data => processRates(data));
+        const req = API_URL + '/latest?base=RUB';
+        return caches.match(req).then(res => {
+            if (res !== undefined) {
+                console.log("Get currency from cache")
+                return res.json().then(data => {
+                    return processRates(data)
+                })
+            } 
+            else {
+                console.log("Get currency from url")
+                return fetch(API_URL + '/latest?base=RUB')
+                        .then(res => res.json())
+                        .then(data => processRates(data));
+            }
+        })
     }
 
     function render(data) {
