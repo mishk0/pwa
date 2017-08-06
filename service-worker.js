@@ -3,27 +3,38 @@
 const CACHE_VER = 'v1';
 var API_URL = 'https://api.fixer.io';
 
-var filesToCache = [
-    './',
-    './index.html',
+const CURRENT_CACHES = {
+    bundle: 'bundle',
+    core: 'core-' + CACHE_VER
+};
+// bundle - файлы, которые будет выплевывать сборщик
+// core - файлы со статичными именами, обновляются при изменении версии Service Worker'а
+
+const bundelFiles = [
     './assets/app.js',
     './assets/styles.css'
 ];
-
-var whiteList = [];
+const coreFiles = [
+    './',
+    './index.html'
+]
 
 self.addEventListener('install', function(e) {
     e.waitUntil(
         self.skipWaiting(),
-        caches.open(CACHE_VER).then(function(cache) {
-            return cache.addAll(filesToCache);
-        })
+        caches.open(CURRENT_CACHES.core).then(function(cache) {
+            return cache.addAll(coreFiles);
+        }),
+        addFilesToBundleCache(),
     );
 });
 
 self.addEventListener('activate', function(e) {
     self.clients.claim();
-    e.waitUntil(deleteObsoleteAssets());
+    e.waitUntil(
+        deleteObsoleteAssets(), 
+        removeFilesFromBundleCache()
+    )
 });
 
 self.addEventListener('fetch', function(e) {
@@ -49,7 +60,7 @@ function networkFirst(req, timeout) {
     return Promise.race([ fetch(req, fetchParams), timerPromise ])
         .then(res => {
             return caches
-                .open(CACHE_VER)
+                .open(CURRENT_CACHES.core)
                 .then(cache => { cache.put(req, res.clone()); })
                 .then(() => { return res; })
         })
@@ -63,7 +74,7 @@ function cacheFirst(req) {
             return cache;
         }
 
-        return caches.open(CACHE_VER).then(cache => {
+        return caches.open(CURRENT_CACHES.core).then(cache => {
             return fetch(req).then(function(res) {
                 cache.put(req, res.clone());
                 return res;
@@ -77,16 +88,54 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    
-    // get all cache names
+    console.log('update Core')
     return caches.keys().then((cacheNames) => {
         return Promise.all(
-            // delete all items that are not the current one
+            // обновляем Core Cache
             cacheNames.map((cacheName) => {
-                if (cacheName !== CACHE_VER) {
+                if (cacheName !== CURRENT_CACHES.core && cacheName.indexOf('core') !== -1) {
                     return caches.delete(cacheName);
                 }
             })
         );
+    })
+}
+
+/**
+ * Добавляем файлы в кэш bundeles, если их там нет
+ */
+function addFilesToBundleCache() {
+    console.log('add new bundles')
+    bundelFiles.forEach(file => {
+        caches.match(file).then(res => {
+            if (!res) {
+                caches.open(CURRENT_CACHES.bundle).then(cache => {
+                    cache.add(file);
+                })
+            }
+        })
+    })
+}
+/**
+ * Удаляем файлы из кэша bundeles, если их нет в списке файлов на кэширования
+ */
+function removeFilesFromBundleCache() {
+    console.log('remove bundles')
+    caches.open(CURRENT_CACHES.bundle).then(cache => {
+        cache.keys().then(requests => {
+            Promise.all(
+                requests.map(req => {
+                    let isNeed = false;
+                    bundelFiles.forEach(file => {
+                        if (req.url.indexOf(file.substr(1)) !== -1 && file.substr(1) != '/') {
+                            isNeed = true;
+                        }
+                    })
+                    if (!isNeed) {
+                        cache.delete(req)
+                    }
+                })
+            )
+        })
     })
 }
