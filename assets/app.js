@@ -1,12 +1,13 @@
 (function() {
     'use strict';
-    var API_URL = 'https://api.fixer.io';
-    var AUTO_UPDATE_SEC = 5;
-    var currenciesNode = document.querySelector('.currencies');
-    var loaderNode = document.querySelector('.loader');
-    var lastUpdateNode = document.querySelector('.lastUpdate_date');
-    var _lastData;
-    const CACHE_NAME = 'v1';
+    const API_URL = 'https://api.fixer.io';
+    const AUTO_UPDATE_SEC = 5;
+    const updateCurrenciesBtn = document.querySelector('.update-currencies');
+    const currenciesNode = document.querySelector('.currencies');
+    const loaderNode = document.querySelector('.loader');
+    const lastUpdateNode = document.querySelector('.lastUpdate_date');
+    let _lastData;
+    const CACHE_NAME = 'v3';
 
     function init() {
         updateCurrency();
@@ -14,28 +15,36 @@
         setInterval(() => {
             updateCurrency();
         }, AUTO_UPDATE_SEC * 1000);
+
+        updateCurrenciesBtn.addEventListener('click', () => {updateCurrency(true)})
     }
 
-    function updateCurrency() {
-        return getCurrency().then(data => {
+    function updateCurrency(fromNetwork = false) {
+        return getCurrency(fromNetwork).then(data => {
             render(data);
             _lastData = data;
         });
     }
 
-    function getCurrency() {
+    function getCurrencyNetwork(url) {
+        return fetch(url)
+            .then(res => res.json())
+            .then(data => processRates(data));
+    }
+
+    async function getCurrency(fromNetwork) {
         const url = API_URL + '/latest?base=RUB';
-        return caches.open(CACHE_NAME).then(cache => {
-            return cache.match(url).then(res => {
-                if(res !== undefined){
-                    return res.json().then(data => processRates(data));
-                } else {
-                    return fetch(url)
-                        .then(res => res.json())
-                        .then(data => processRates(data));
-                }
-            })
-        });
+        if('caches' in window && fromNetwork === false) {
+            const cache = await caches.open(CACHE_NAME);
+            const res = await cache.match(url);
+            if(res !== undefined){
+                return res.json().then(data => processRates(data));
+            } else {
+                return getCurrencyNetwork(url);
+            }
+        } else {
+            return getCurrencyNetwork(url);
+        }
     }
 
     function render(data) {
