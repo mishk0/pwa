@@ -87,9 +87,43 @@ body {
     background: rgba(255, 0, 0, 0.5);
 }
 
+.clearfix {
+    padding: 10px 20px;
+}
+
+.clearfix::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 0;
+    clear: both;
+}
+
 .lastUpdate {
     font-size: 12px;
-    padding-left: 20px;
+    float: left;
+    line-height: 26px;
+}
+
+.updateBtn {
+    font-size: 12px;
+    background-color: inherit;
+    color: inherit;
+    float: right;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 3px;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.updateBtn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.updateBtn:active {
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}

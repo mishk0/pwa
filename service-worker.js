@@ -32,6 +32,26 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
+self.addEventListener('sync', function (event) {
+    if (event.tag === 'updateCurrencyCache') {
+        const req = API_URL + '/latest?base=RUB';
+
+        event.waitUntil(
+            fetch(req).then((res) => {
+                return caches.open(CACHE_NAME).then((cache) => {
+                    cache.put(req, res);
+                })
+            })
+            .then(() => {
+                self.registration.showNotification('Currency cache updated');
+            })
+            .catch((err) => {
+                console.log(`Sync failed: ${err}`);
+            })
+        );
+    }
+});
+
 function networkFirst(req) {
     return caches.open(CACHE_NAME).then(function(cache) {
         return fetch(req).then(function(res){

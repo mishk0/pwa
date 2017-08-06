@@ -23,9 +23,17 @@
     }
 
     function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
-            .then(data => processRates(data));
+        const requestUrl = API_URL + '/latest?base=RUB';
+
+        return caches.match(requestUrl).then((cache) => {
+            if (cache) {
+                return cache;
+            } else {
+                return fetch(requestUrl);
+            }
+        })
+        .then(res => res.json())
+        .then(data => processRates(data));
     }
 
     function render(data) {
@@ -66,7 +74,16 @@
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
             .register('./service-worker.js')
-            .then(() => { console.log('Service Worker Registered') });
+            .then((registration) => {
+                return navigator.serviceWorker.ready
+            })
+            .then((registration) => {
+                Notification.requestPermission();
+
+                document.querySelector('.updateBtn').addEventListener('click', () => {
+                    registration.sync.register('updateCurrencyCache');
+                });
+            })
     }
 
     init();
