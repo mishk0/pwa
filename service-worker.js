@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'v1';
+const CACHE_VER = 'v1';
 var API_URL = 'https://api.fixer.io';
 
 var filesToCache = [
@@ -10,10 +10,12 @@ var filesToCache = [
     './assets/styles.css'
 ];
 
+var whiteList = [];
+
 self.addEventListener('install', function(e) {
     e.waitUntil(
         self.skipWaiting(),
-        caches.open(CACHE_NAME).then(function(cache) {
+        caches.open(CACHE_VER).then(function(cache) {
             return cache.addAll(filesToCache);
         })
     );
@@ -21,38 +23,47 @@ self.addEventListener('install', function(e) {
 
 self.addEventListener('activate', function(e) {
     self.clients.claim();
-
     e.waitUntil(deleteObsoleteAssets());
 });
 
 self.addEventListener('fetch', function(e) {
     if (isApiCall(e.request.url)) {
-        e.respondWith(networkFirst(e.request));
+        e.respondWith(networkFirst(e.request), 5000);
     } else {
         e.respondWith(cacheFirst(e.request));
     }
 });
 
-function networkFirst(req) {
-    return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
-            cache.put(req, res.clone());
-            return res;
-        }).catch(err => {
-            console.log('Error on networkFirst', err);
+function networkFirst(req, timeout) {
+    console.log('Network first');
 
-            return caches.match(req);
-        });
+    const fetchHeaders = new Headers();
+    fetchHeaders.append('pragma', 'no-cache');
+    fetchHeaders.append('cache-control', 'no-cache');
+    const fetchParams = { method: 'GET', headers: fetchHeaders};
+    const timerPromise = new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject('timeout');
+        }, timeout || 300);
     })
+    return Promise.race([ fetch(req, fetchParams), timerPromise ])
+        .then(res => {
+            return caches
+                .open(CACHE_VER)
+                .then(cache => { cache.put(req, res.clone()); })
+                .then(() => { return res; })
+        })
+        .catch(err => { return cacheFirst(req) })
 }
 
 function cacheFirst(req) {
+    console.log("Cache first")
     return caches.match(req).then(function(cache) {
         if (cache) {
             return cache;
         }
 
-        return caches.open(CACHE_NAME).then(cache => {
+        return caches.open(CACHE_VER).then(cache => {
             return fetch(req).then(function(res) {
                 cache.put(req, res.clone());
                 return res;
@@ -66,11 +77,16 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
-            }
-        }));
+    
+    // get all cache names
+    return caches.keys().then((cacheNames) => {
+        return Promise.all(
+            // delete all items that are not the current one
+            cacheNames.map((cacheName) => {
+                if (cacheName !== CACHE_VER) {
+                    return caches.delete(cacheName);
+                }
+            })
+        );
     })
 }

@@ -37,8 +37,8 @@
 
     function processRates(data) {
         return Object.keys(data.rates).reduce((res, currency) => {
-                //res.rates[currency] = (1/res.rates[currency]).toFixed(2);
-                res.rates[currency] = (1/Math.random()).toFixed(3);
+                res.rates[currency] = (1/res.rates[currency]).toFixed(2);
+                // res.rates[currency] = (1/Math.random()).toFixed(3);
 
                 return res;
             }, data);
