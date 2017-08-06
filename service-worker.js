@@ -2,6 +2,7 @@
 
 const CACHE_NAME = 'v1';
 var API_URL = 'https://api.fixer.io';
+var FETCH_TIMEOUT = 300;
 
 var filesToCache = [
     './',
@@ -35,14 +36,15 @@ self.addEventListener('fetch', function(e) {
 
 function networkFirst(req) {
     return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
-            cache.put(req, res.clone());
-            return res;
-        }).catch(err => {
-            console.log('Error on networkFirst', err);
-
-            return caches.match(req);
-        });
+        return fromNetworkWithTimeout(req, FETCH_TIMEOUT)
+            .then(function(res) {
+                cache.put(req, res.clone());
+                return res;
+            })
+            .catch(err => {
+                console.log('Error on networkFirst', err);
+                return caches.match(req);
+            });
     })
 }
 
@@ -59,6 +61,17 @@ function cacheFirst(req) {
             });
         });
     })
+}
+
+function fromNetworkWithTimeout(req, timeout) {
+    return new Promise(function (fulfill, reject) {
+        var timerId = setTimeout(reject, timeout);
+
+        fetch(req).then(function(res) {
+            clearTimeout(timerId);
+            fulfill(res);
+        }, reject);
+    });
 }
 
 function isApiCall(url) {
