@@ -6,6 +6,7 @@
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
     var _lastData;
+    const CACHE_NAME = 'v1';
 
     function init() {
         updateCurrency();
@@ -23,9 +24,18 @@
     }
 
     function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
-            .then(data => processRates(data));
+        const url = API_URL + '/latest?base=RUB';
+        return caches.open(CACHE_NAME).then(cache => {
+            return cache.match(url).then(res => {
+                if(res !== undefined){
+                    return res.json().then(data => processRates(data));
+                } else {
+                    return fetch(url)
+                        .then(res => res.json())
+                        .then(data => processRates(data));
+                }
+            })
+        });
     }
 
     function render(data) {
