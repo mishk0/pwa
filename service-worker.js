@@ -1,14 +1,24 @@
 'use strict';
 
 const CACHE_NAME = 'v1';
+const FETCH_TIMEOUT = 300;
 var API_URL = 'https://api.fixer.io';
 
 var filesToCache = [
-    './',
     './index.html',
     './assets/app.js',
     './assets/styles.css'
 ];
+
+//для запросов к apiнельзя использовать кэш
+var noCacheHeader = new Headers();
+noCacheHeader.append('pragma', 'no-cache');
+noCacheHeader.append('cache-control', 'no-cache');
+
+var myInit = {
+  method: 'GET',
+  headers: noCacheHeader
+};
 
 self.addEventListener('install', function(e) {
     e.waitUntil(
@@ -26,6 +36,7 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener('fetch', function(e) {
+
     if (isApiCall(e.request.url)) {
         e.respondWith(networkFirst(e.request));
     } else {
@@ -33,18 +44,57 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
+self.addEventListener('sync', function(e){
+    let _apiURL = 'https://api.fixer.io/latest?base=RUB';
+    e.waitUntil(
+        fetch(_apiURL, myInit)
+            .then((res) => {
+                caches.open(CACHE_NAME).then(function (cache) {
+                    cache.put(_apiURL, res);
+                })
+                self.registration.showNotification('Exchange rates updated in background');
+            })
+            .catch((err) =>{
+                self.registration.showNotification(err);
+            })
+    );
+    
+})
+
 function networkFirst(req) {
-    return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
+    return caches.open(CACHE_NAME).then(function (cache) {
+
+        return new Promise(function (resolve, reject) {
+
+            var timeout = setTimeout(function () {
+                //если самый первый запрос не пройдет таймаут, то ничего не загрузится, из-за того, что первому запросу из кэша нечего
+                //взять, поэтому пока кэш пустой, нельзя использовать таймаут, т.е. дать возможность использовать максимальное время fetch
+                caches.match(req).then((res)=>{
+                    if (res) reject(new Error('Request timed out'));
+                })
+            }, FETCH_TIMEOUT);
+            fetch(req, myInit)
+                .then(function (res) {
+                    clearTimeout(timeout);
+                    resolve(res);
+                })
+                .catch(function (err) {
+                    reject(err);
+                });
+        })
+        .then(function(res){
+            console.log('Loading from network...');
             cache.put(req, res.clone());
             return res;
-        }).catch(err => {
-            console.log('Error on networkFirst', err);
-
+        })
+        .catch(function(err){
+            console.warn('Error on network First:', err);
             return caches.match(req);
-        });
+        })
     })
 }
+
+
 
 function cacheFirst(req) {
     return caches.match(req).then(function(cache) {
@@ -66,11 +116,30 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
+    // return caches.keys().then(function(keys) {
+    //     return Promise.all(keys.map(function(key) {
+    //         if (key !== CACHE_NAME) {
+    //             return caches.delete(key);
+    //         }
+    //     }));
+    // })
+    
+    
+    return caches.open(CACHE_NAME)
+    .then(cache => cache.matchAll())
+    .then((cache) => {
+        cache.forEach(function(element) {
+            var FOUND = false;
+            filesToCache.forEach(function(file){
+                if (element.url.match(file.substring(1)) && !element.url.match('index.html')){
+                     FOUND = true;
+                }
+            })
+            if (!FOUND){
+                console.log('Deleting from cache: ' + element.url);
+                caches.open(CACHE_NAME)
+                .then(cache => cache.delete(element.url))
             }
-        }));
+        });
     })
 }
