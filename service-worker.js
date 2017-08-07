@@ -44,6 +44,22 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
+self.addEventListener('sync', function(event) {
+    if (event.tag === 'updateCurrenciesInBackground') {
+        event.waitUntil(updateCurrency().then(() => {
+            self.registration.showNotification("Currencies successfully updated");
+        }));
+    }
+});
+
+function updateCurrency() {
+    return fetch(API_URL + '/latest?base=RUB').then(res => {
+        return caches.open(CACHE_NAME).then(cache => {
+            return cache.put(res.url, res).then(() => true);
+        })
+    });
+}
+
 function networkFirst(req, timeout) {
     // Promise, срабатывает, если прошло API_TIMEOUT миллисекунд
     const timeoutPromise = new Promise((resolve, reject) => {

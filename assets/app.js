@@ -56,7 +56,6 @@
 
     function processRates(data) {
         return Object.keys(data.rates).reduce((res, currency) => {
-                //res.rates[currency] = (1/res.rates[currency]).toFixed(2);
                 res.rates[currency] = (1/Math.random()).toFixed(3);
                 return res;
             }, data);
@@ -83,8 +82,15 @@
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
-            .register('./service-worker.js')
-            .then(() => { console.log('Service Worker Registered') });
+            .register('./service-worker.js').then((req) => {
+                Notification.requestPermission();
+                if('sync' in req) {
+                    updateCurrenciesBtn.addEventListener('click', () => {
+                        req.sync.register('updateCurrenciesInBackground').then(() => {
+                        });
+                    });
+                }
+            });
     }
 
     init();
