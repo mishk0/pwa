@@ -1,6 +1,7 @@
 'use strict';
 
 const CACHE_VER = 'v1';
+const reqRub = 'https://api.fixer.io/latest?base=RUB';
 var API_URL = 'https://api.fixer.io';
 
 const CURRENT_CACHES = {
@@ -20,28 +21,58 @@ const coreFiles = [
 ]
 
 self.addEventListener('install', function(e) {
+    console.log('[sw]: install')
     e.waitUntil(
         self.skipWaiting(),
         caches.open(CURRENT_CACHES.core).then(function(cache) {
             return cache.addAll(coreFiles);
         }),
-        addFilesToBundleCache(),
+        addFilesToBundleCache(), 
+        removeFilesFromBundleCache()
     );
 });
 
 self.addEventListener('activate', function(e) {
+    console.log('[sw]: activate')
     self.clients.claim();
     e.waitUntil(
-        deleteObsoleteAssets(), 
-        removeFilesFromBundleCache()
-    )
+        deleteObsoleteAssets()
+    );
 });
 
 self.addEventListener('fetch', function(e) {
+    console.log('[sw]: fetch')
     if (isApiCall(e.request.url)) {
         e.respondWith(networkFirst(e.request), 5000);
     } else {
         e.respondWith(cacheFirst(e.request));
+    }
+});
+
+function fetchCurrency() {
+    return fetch(reqRub)
+            .then(res => {
+                return res;
+            })
+}
+
+self.addEventListener('sync', event => {
+    if (event.tag == 'sync-getCurrency') {
+        event.waitUntil(
+            fetchCurrency()
+            .then(res => {
+                caches
+                    .open(CURRENT_CACHES.core)
+                    .then(cache => {
+                        console.log('Cache was updated after offline')
+                        cache.put(reqRub, res.clone());
+                    })
+                self.registration.showNotification('Обновился курс валюты!')
+            })
+            .catch(err => {
+                console.log('Error syncing currency')
+            })
+        );
     }
 });
 
@@ -62,7 +93,9 @@ function networkFirst(req, timeout) {
             return caches
                 .open(CURRENT_CACHES.core)
                 .then(cache => { cache.put(req, res.clone()); })
-                .then(() => { return res; })
+                .then(() => {
+                    return res;
+                })
         })
         .catch(err => { return cacheFirst(req) })
 }
