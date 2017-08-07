@@ -5,40 +5,7 @@
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
-    const buttonUpdate = document.querySelector('.button-update');
-    const headerText = document.querySelector('.header-title')
-    const req = API_URL + '/latest?base=RUB';
-    let firstLoad = true;
     var _lastData;
-    // запрос разрешения на push
-    Notification.requestPermission();
-
-    buttonUpdate.addEventListener('click', function(){
-        if (!isOnline()) {
-            console.log("Offline mode")
-            if ('serviceWorker' in navigator && 'SyncManager' in window) {
-                navigator.serviceWorker.ready.then(registration => {
-                    registration.sync.register('sync-getCurrency')
-                    .then(res => { });
-                }).catch(err => {
-                    console.log('get Currency error:', err)
-                })
-            }
-        }
-        else {
-            updateCurrency();
-        }
-    })
-
-    function isOnline() {
-        if (navigator.onLine) {
-            headerText.innerHTML = 'Exchange rates';
-            return true
-        } else {
-            headerText.innerHTML = 'Exchange rates: <span style="color: red;">Offline</span>';
-            return false;
-        }
-    }
 
     function init() {
         updateCurrency();
@@ -47,10 +14,7 @@
             updateCurrency();
         }, AUTO_UPDATE_SEC * 1000);
     }
-    /**
-     * Обновить данные
-     * @param {* ?Boolean} fromNetwork - обновить из сети?
-     */
+
     function updateCurrency() {
         return getCurrency().then(data => {
             render(data);
@@ -59,17 +23,17 @@
     }
 
     function getCurrency() {
+        const req = API_URL + '/latest?base=RUB';
         return caches.match(req).then(res => {
-            if ((firstLoad || !isOnline()) && res) {
-                console.log("Get currency from cache. Online:", isOnline())
+            if (res !== undefined) {
+                console.log("Get currency from cache")
                 return res.json().then(data => {
-                    firstLoad = false;
                     return processRates(data)
                 })
             } 
             else {
-                console.log("Get currency from network. Online:", isOnline())
-                return fetch(req)
+                console.log("Get currency from url")
+                return fetch(API_URL + '/latest?base=RUB')
                         .then(res => res.json())
                         .then(data => processRates(data));
             }

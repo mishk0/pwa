@@ -92,4 +92,19 @@ body {
     padding-left: 20px;
 }
 
+.button-update {
+    border: none;
+    border-radius: 2px;
+    font-weight: bold;
+    background-color: #6383a8;
+    color: #fff;
+    font-size: 14px;
+    outline: 0;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.button-update:hover {
+  background-color: #6d8cb0
+}
+
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
