@@ -1,11 +1,13 @@
 (function() {
     'use strict';
-    var API_URL = 'https://api.fixer.io';
-    var AUTO_UPDATE_SEC = 5;
-    var currenciesNode = document.querySelector('.currencies');
-    var loaderNode = document.querySelector('.loader');
-    var lastUpdateNode = document.querySelector('.lastUpdate_date');
-    var _lastData;
+    const API_URL = 'https://api.fixer.io';
+    const AUTO_UPDATE_SEC = 5;
+    const updateCurrenciesBtn = document.querySelector('.update-currencies');
+    const currenciesNode = document.querySelector('.currencies');
+    const loaderNode = document.querySelector('.loader');
+    const lastUpdateNode = document.querySelector('.lastUpdate_date');
+    let _lastData;
+    const CACHE_NAME = 'v3';
 
     function init() {
         updateCurrency();
@@ -13,19 +15,36 @@
         setInterval(() => {
             updateCurrency();
         }, AUTO_UPDATE_SEC * 1000);
+
+        updateCurrenciesBtn.addEventListener('click', () => {navigator.onLine === true && updateCurrency(true)})
     }
 
-    function updateCurrency() {
-        return getCurrency().then(data => {
+    function updateCurrency(fromNetwork = false) {
+        return getCurrency(fromNetwork).then(data => {
             render(data);
             _lastData = data;
         });
     }
 
-    function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
+    function getCurrencyNetwork(url) {
+        return fetch(url)
             .then(res => res.json())
             .then(data => processRates(data));
+    }
+
+    async function getCurrency(fromNetwork) {
+        const url = API_URL + '/latest?base=RUB';
+        if('caches' in window && fromNetwork === false) {
+            const cache = await caches.open(CACHE_NAME);
+            const res = await cache.match(url);
+            if(res !== undefined){
+                return res.json().then(data => processRates(data));
+            } else {
+                return getCurrencyNetwork(url);
+            }
+        } else {
+            return getCurrencyNetwork(url);
+        }
     }
 
     function render(data) {
@@ -37,9 +56,7 @@
 
     function processRates(data) {
         return Object.keys(data.rates).reduce((res, currency) => {
-                //res.rates[currency] = (1/res.rates[currency]).toFixed(2);
                 res.rates[currency] = (1/Math.random()).toFixed(3);
-
                 return res;
             }, data);
     }
@@ -65,8 +82,21 @@
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
-            .register('./service-worker.js')
-            .then(() => { console.log('Service Worker Registered') });
+            .register('./service-worker.js').then((registration) => {
+                Notification.requestPermission().then((req) => {
+                    if('sync' in registration) {
+                        if(req === 'granted') {
+                            updateCurrenciesBtn.addEventListener('click', () => {
+                                registration.sync.register('update-currency-push');
+                            });
+                        } else {
+                            updateCurrenciesBtn.addEventListener('click', () => {
+                                registration.sync.register('update-currency');
+                            });
+                        }
+                    }
+                });
+            });
     }
 
     init();

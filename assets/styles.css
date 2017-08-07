@@ -92,4 +92,17 @@ body {
     padding-left: 20px;
 }
 
+.update-currencies {
+    display: block;
+    width: 150px;
+    margin: 20px;
+    border: 1px solid white;
+    border-radius: 3px;
+    background-color: transparent;
+    color: white;
+    font-size: 14px;
+    line-height: 28px;
+    padding: 5px;
+}
+
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
