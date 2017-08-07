@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VER = 'v1';
+const CACHE_VER = 'v1.1';
 const reqRub = 'https://api.fixer.io/latest?base=RUB';
 var API_URL = 'https://api.fixer.io';
 

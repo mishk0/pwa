@@ -5,8 +5,10 @@
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
-    var buttonUpdate = document.querySelector('.button-update');
+    const buttonUpdate = document.querySelector('.button-update');
+    const headerText = document.querySelector('.header-title')
     const req = API_URL + '/latest?base=RUB';
+    let firstLoad = true;
     var _lastData;
     // запрос разрешения на push
     Notification.requestPermission();
@@ -24,14 +26,16 @@
             }
         }
         else {
-            updateCurrency(true);
+            updateCurrency();
         }
     })
 
     function isOnline() {
         if (navigator.onLine) {
+            headerText.innerHTML = 'Exchange rates';
             return true
         } else {
+            headerText.innerHTML = 'Exchange rates: <span style="color: red;">Offline</span>';
             return false;
         }
     }
@@ -47,18 +51,19 @@
      * Обновить данные
      * @param {* ?Boolean} fromNetwork - обновить из сети?
      */
-    function updateCurrency(fromNetwork) {
-        return getCurrency(fromNetwork).then(data => {
+    function updateCurrency() {
+        return getCurrency().then(data => {
             render(data);
             _lastData = data;
         });
     }
 
-    function getCurrency(fromNetwork) {
+    function getCurrency() {
         return caches.match(req).then(res => {
-            if (res !== undefined && !fromNetwork) {
+            if ((firstLoad || !isOnline()) && res) {
                 console.log("Get currency from cache. Online:", isOnline())
                 return res.json().then(data => {
+                    firstLoad = false;
                     return processRates(data)
                 })
             } 
