@@ -45,10 +45,15 @@ self.addEventListener('fetch', function(e) {
 });
 
 self.addEventListener('sync', function(event) {
-    if (event.tag === 'updateCurrenciesInBackground') {
+    if (event.tag === 'update-currency-push') {
         event.waitUntil(updateCurrency().then(() => {
-            self.registration.showNotification("Currencies successfully updated");
+            self.registration.showNotification('Currency', {
+                body: 'Currencies successfully updated!',
+                icon: "assets/icons/icon152.png"
+            });
         }));
+    } else if (event.tag === 'update-currency') {
+        event.waitUntil(updateCurrency());
     }
 });
 

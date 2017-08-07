@@ -84,10 +84,14 @@
         navigator.serviceWorker
             .register('./service-worker.js').then((registration) => {
                 Notification.requestPermission().then((req) => {
-                    if(req === 'granted') {
-                        if('sync' in registration) {
+                    if('sync' in registration) {
+                        if(req === 'granted') {
                             updateCurrenciesBtn.addEventListener('click', () => {
-                                registration.sync.register('updateCurrenciesInBackground');
+                                registration.sync.register('update-currency-push');
+                            });
+                        } else {
+                            updateCurrenciesBtn.addEventListener('click', () => {
+                                registration.sync.register('update-currency');
                             });
                         }
                     }
