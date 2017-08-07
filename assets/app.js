@@ -16,7 +16,7 @@
             updateCurrency();
         }, AUTO_UPDATE_SEC * 1000);
 
-        updateCurrenciesBtn.addEventListener('click', () => {updateCurrency(true)})
+        updateCurrenciesBtn.addEventListener('click', () => {navigator.onLine === true && updateCurrency(true)})
     }
 
     function updateCurrency(fromNetwork = false) {
@@ -82,14 +82,16 @@
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
-            .register('./service-worker.js').then((req) => {
-                Notification.requestPermission();
-                if('sync' in req) {
-                    updateCurrenciesBtn.addEventListener('click', () => {
-                        req.sync.register('updateCurrenciesInBackground').then(() => {
-                        });
-                    });
-                }
+            .register('./service-worker.js').then((registration) => {
+                Notification.requestPermission().then((req) => {
+                    if(req === 'granted') {
+                        if('sync' in registration) {
+                            updateCurrenciesBtn.addEventListener('click', () => {
+                                registration.sync.register('updateCurrenciesInBackground');
+                            });
+                        }
+                    }
+                });
             });
     }
 
