@@ -5,14 +5,18 @@
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
+    var updateBtnNode = document.querySelector('.updateBtn');
     var _lastData;
 
     function init() {
         updateCurrency();
 
-        setInterval(() => {
-            updateCurrency();
-        }, AUTO_UPDATE_SEC * 1000);
+        // setInterval(() => {
+        //     updateCurrency();
+        // }, AUTO_UPDATE_SEC * 1000);
+
+        updateBtnNode.addEventListener('click', updateCurrency);
+        Notification.requestPermission();
     }
 
     function updateCurrency() {
@@ -23,9 +27,27 @@
     }
 
     function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
+        return fetchCurrency()
             .then(res => res.json())
             .then(data => processRates(data));
+    }
+
+    function fetchCurrency() {
+        var requestURL = API_URL + '/latest?base=RUB';
+
+        if (!isOnline()) {
+            return Promise.all([
+                    registerSyncEvent(),
+                    window.caches.match(requestURL)
+                ])
+                .then(([syncResult, cache]) => {
+                    if (cache) {
+                        return cache;
+                    }
+                });
+        } else {
+            return fetch(requestURL);
+        }
     }
 
     function render(data) {
@@ -61,6 +83,21 @@
                 <span class="currency-rate ${additionClass}">${data[item]}</span>
             </div>`;
         }, '');
+    }
+
+    function registerSyncEvent() {
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            return navigator.serviceWorker.ready
+                .then(reg => {
+                    return reg.sync.register('update-currency');
+                });
+        } else {
+            return Promise.resolve();
+        }
+    }
+
+    function isOnline() {
+        return navigator.onLine;
     }
 
     if ('serviceWorker' in navigator) {

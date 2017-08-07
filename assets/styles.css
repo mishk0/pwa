@@ -90,6 +90,15 @@ body {
 .lastUpdate {
     font-size: 12px;
     padding-left: 20px;
+    display: block;
+}
+
+.updateBtn {
+    background: white;
+    margin: 0 0 10px 20px;
+    padding: 5px 10px;
+    border: none;
+    font-size: 14px;
 }
 
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
