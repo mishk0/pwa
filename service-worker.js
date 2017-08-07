@@ -21,7 +21,6 @@ self.addEventListener('install', function(e) {
                     return caches.match(file)
                         .then((res) => {
                             if (res === undefined) {
-                                console.log('кладем в кеш', file);
                                 cache.add(file);
                             }
                         });
@@ -34,6 +33,22 @@ self.addEventListener('install', function(e) {
 self.addEventListener('activate', function(e) {
     self.clients.claim();
     e.waitUntil(deleteObsoleteAssets());
+});
+
+self.addEventListener('sync', function (e) {
+    if (e.tag === 'update-currency') {
+        e.waitUntil(
+            networkFirst(API_URL + '/latest?base=RUB')
+                .then(() => {
+                    self.registration.showNotification('Валюты обновлены');
+                })
+        );
+    }
+});
+
+self.addEventListener('notificationclick', function(e) {
+    e.notification.close();
+    clients.openWindow(`${location.origin}`);
 });
 
 self.addEventListener('fetch', function(e) {
@@ -115,7 +130,6 @@ function deleteObsoleteInCurrentCache() {
                         var path = '.' + url.pathname;
 
                         if (filesToCache.indexOf(path) === -1) {
-                            console.log('удаляем из кеша', path);
                             return cache.delete(req);
                         }
                     }));
