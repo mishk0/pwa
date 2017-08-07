@@ -2,7 +2,8 @@
 
 const CACHE_NAME = 'v1';
 const SEC_TIMEOUT = 5;
-var API_URL = 'https://api.fixer.io';
+const API_URL = 'https://api.fixer.io';
+const ORIGIN = location.origin;
 
 var filesToCache = [
     './',
@@ -11,20 +12,20 @@ var filesToCache = [
     './assets/styles.css'
 ];
 
-self.addEventListener('install', function(e) {
+self.addEventListener('install', (e) => {
     e.waitUntil(
         self.skipWaiting(),
         addNewAssets(filesToCache)
     );
 });
 
-self.addEventListener('activate', function(e) {
+self.addEventListener('activate', (e) => {
     self.clients.claim();
 
     e.waitUntil(deleteObsoleteAssets(filesToCache));
 });
 
-self.addEventListener('fetch', function(e) {
+self.addEventListener('fetch', (e) => {
     if (isApiCall(e.request.url)) {
         e.respondWith(networkFirstWithTimeout(e.request, SEC_TIMEOUT * 1000));
     } else {
@@ -32,11 +33,11 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
-self.addEventListener('sync', function (event) {
-    if (event.tag === 'updateCurrencyCache') {
+self.addEventListener('sync', (e) => {
+    if (e.tag === 'updateCurrencyCache') {
         const req = API_URL + '/latest?base=RUB';
 
-        event.waitUntil(
+        e.waitUntil(
             fetch(req).then((res) => {
                 return caches.open(CACHE_NAME).then((cache) => {
                     cache.put(req, res);
@@ -52,12 +53,19 @@ self.addEventListener('sync', function (event) {
     }
 });
 
+self.addEventListener('notificationclick', (e) => {
+    e.notification.close();
+    e.waitUntil(
+        self.clients.openWindow(ORIGIN)
+    );
+});
+
 function networkFirst(req) {
-    return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
+    return caches.open(CACHE_NAME).then((cache) => {
+        return fetch(req).then((res) => {
             cache.put(req, res.clone());
             return res;
-        }).catch(err => {
+        }).catch((err) => {
             console.log('Error on networkFirst', err);
 
             return caches.match(req);
@@ -66,16 +74,16 @@ function networkFirst(req) {
 }
 
 function networkFirstWithTimeout(req, timeout) {
-    let fetchRpomise = caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
+    let fetchRpomise = caches.open(CACHE_NAME).then((cache) => {
+        return fetch(req).then((res) => {
             cache.put(req, res.clone());
             return res;
         });
     });
 
-    let fallBackPromise = new Promise(function(resolve, reject) {
-        return caches.match(req).then(function(cache) {
-            setTimeout(function() {
+    let fallBackPromise = new Promise((resolve, reject) => {
+        return caches.match(req).then((cache) => {
+            setTimeout(() => {
                 if (cache) {
                     resolve(cache);
                 }
@@ -83,19 +91,19 @@ function networkFirstWithTimeout(req, timeout) {
         })
     });
 
-    return Promise.race([fetchRpomise, fallBackPromise]).then(function(res) {
+    return Promise.race([fetchRpomise, fallBackPromise]).then((res) => {
         return res;
     });
 }
 
 function cacheFirst(req) {
-    return caches.match(req).then(function(cache) {
+    return caches.match(req).then((cache) => {
         if (cache) {
             return cache;
         }
 
         return caches.open(CACHE_NAME).then(cache => {
-            return fetch(req).then(function(res) {
+            return fetch(req).then((res) => {
                 cache.put(req, res.clone());
                 return res;
             });
@@ -108,7 +116,7 @@ function isApiCall(url) {
 }
 
 function addNewAssets(assets) {
-    return caches.open(CACHE_NAME).then(function(cache) {
+    return caches.open(CACHE_NAME).then((cache) => {
         return Promise.all(
             assets.map((asset) => {
                 return cache.match(asset).then((matched) => {
@@ -122,21 +130,20 @@ function addNewAssets(assets) {
 }
 
 function deleteObsoleteAssets(assets) {
-    const origin = location.origin;
     const absoluteAssets = assets.map((asset) => {
-        return asset.replace(/^\./, origin);
+        return asset.replace(/^\./, ORIGIN);
     });
     const obsoleteAssets = [];
 
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
+    return caches.keys().then((keys) => {
+        return Promise.all(keys.map((key) => {
             if (key !== CACHE_NAME) {
                 return caches.delete(key);
             }
         }));
     })
     .then(() => {
-        return caches.open(CACHE_NAME).then(function(cache) {
+        return caches.open(CACHE_NAME).then((cache) => {
             return cache.keys().then((keys) => {
                 keys.forEach((key) => {
                     for (let i = 0; i < absoluteAssets.length; i++) {

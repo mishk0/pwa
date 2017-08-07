@@ -5,18 +5,15 @@
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
+    var updateBtn = document.querySelector('.updateBtn');
     var _lastData;
 
     function init() {
         updateCurrency();
-
-        setInterval(() => {
-            updateCurrency();
-        }, AUTO_UPDATE_SEC * 1000);
     }
 
     function updateCurrency() {
-        return getCurrency().then(data => {
+        return getCurrency().then((data) => {
             render(data);
             _lastData = data;
         });
@@ -75,12 +72,14 @@
         navigator.serviceWorker
             .register('./service-worker.js')
             .then((registration) => {
-                return navigator.serviceWorker.ready
+                return navigator.serviceWorker.ready;
             })
             .then((registration) => {
                 Notification.requestPermission();
 
-                document.querySelector('.updateBtn').addEventListener('click', () => {
+                updateBtn.addEventListener('click', () => {
+                    // Если пользователь онлайн - запрос будет отправлен незамедлительно
+                    // Если пользователь офлайн - запрос будет добавлен в очередь
                     registration.sync.register('updateCurrencyCache');
                 });
             })
