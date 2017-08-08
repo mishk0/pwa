@@ -27,14 +27,14 @@ body {
 
 .header {
     padding: 5px 20px 5px 10px;
-    margin-bottom: 10px;
+    margin: 10px 0;
     display: flex;
     align-items: center;
     align-content: center;
     text-align: center;
 }
 
-.header-title {
+.header__title {
     margin: 0;
     padding: 0;
     flex: 1;
@@ -42,7 +42,7 @@ body {
     font-weight: normal;
 }
 
-.refresh {
+.update-bar__icon {
     border: none;
     outline: none;
     cursor: pointer;
@@ -51,17 +51,12 @@ body {
     background: none;
 }
 
-.refresh-pic {
-    width: 22px;
-    height: 22px;
-}
-
 .loader {
     position: fixed;
     left: 50%;
     top: 50%;
     margin-left: -16px;
-    animation:rotate 1s infinite linear
+    animation: rotate 1s infinite linear;
 }
 
 .currency {
@@ -69,27 +64,34 @@ body {
     padding: 5px 20px;
 }
 
-.currency-name {
+.currency__name {
     flex: 1
 }
 
-.currency-rate {
+.currency__rate {
     border-radius: 3px;
     padding: 3px 7px;
     font-size: 25px;
 }
 
-.currency-rate_up {
+.currency__rate--up {
     background: rgba(0, 255, 0, 0.5);
 }
 
-.currency-rate_down {
+.currency__rate--down {
     background: rgba(255, 0, 0, 0.5);
 }
 
-.lastUpdate {
+.last-update {
     font-size: 12px;
-    padding-left: 20px;
+    padding-left: 10px;
 }
 
-@keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}
+.update-bar {
+    padding: 0 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+@keyframes rotate { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
