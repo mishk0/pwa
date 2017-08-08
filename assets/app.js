@@ -33,10 +33,8 @@
         return caches.open(CACHE_NAME).then(cache => cache.match(req))
             .then(cache => {
                 if (cacheFirst && cache !== undefined) {
-                    console.log('From cache');
                     return cache.json().then(data => processRates(data));
                 } else {
-                    console.log('From network');
                     return fetch(req)
                         .then(res => res.json())
                         .then(data => processRates(data));
