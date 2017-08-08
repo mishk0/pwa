@@ -1,9 +1,11 @@
 'use strict';
 
 const CACHE_NAME = 'v1';
+const CACHE_STATIC = 'static';
 const API_URL = 'https://api.fixer.io';
 const DELAY = 300;
-var filesToCache = [
+const ORIGIN = location.origin;
+const filesToCache = [
     './',
     './index.html',
     './assets/app.js',
@@ -12,8 +14,8 @@ var filesToCache = [
 
 self.addEventListener('install', e => {
 
-    const promise = caches.open(CACHE_NAME)
-        .then(cache => cache.addAll(filesToCache))
+    const promise = caches.open(CACHE_STATIC)
+        .then(cache => updateCache(cache))
         .then(() => self.skipWaiting())
         .then(() => console.log('>> installed'));
 
@@ -23,8 +25,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
 
-    const promise = deleteObsoleteAssets()
-        .then(() => self.clients.claim())
+    const promise = self.clients.claim()
         .then(() => console.log('>> activated'));
 
     e.waitUntil(promise);
@@ -94,12 +95,48 @@ function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
 }
 
-function deleteObsoleteAssets() {
-    return caches.keys().then(keys => {
-        return Promise.all(keys.map(key => {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
-            }
-        }));
+// Обновляет кэш статики
+function updateCache(cache) {
+
+    cache.keys().then(keys => {
+        let urlsToCache = convertUrls(filesToCache);
+        let urlsAlreadyInCache = [];
+        keys.map(item => urlsAlreadyInCache.push(item.url));
+
+        let urlsToUpdate = manageAssets(urlsToCache, urlsAlreadyInCache);
+
+        cache.addAll(urlsToUpdate.add)
+            .then(() => {
+                urlsToUpdate.del.map(item => cache.delete(item));
+            });
+    });
+
+}
+
+// Compare arrays and return object with assets to add / delete
+function manageAssets(arrA, arrB) {
+    let add = [],
+        del = [];
+
+    arrA.map(item => {
+        if (!arrB.includes(item)) {
+            add.push(item);
+        }
+    });
+
+    arrB.map(item => {
+        if (!arrA.includes(item)) {
+            del.push(item);
+        }
     })
+
+    return {
+        add,
+        del
+    }
+}
+
+// Convert URLs from relative to absolute
+function convertUrls(array) {
+    return array.map(item => ORIGIN + item.substr(1));
 }
