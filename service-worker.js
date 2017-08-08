@@ -43,20 +43,15 @@ function networkFirst(req, timeout) {
 
     // Запрос в сеть
     const networkRequest = new Promise( (resolve, reject) => {
-        fetch(req).then(res => {
-            console.log('Network', res);
-            resolve(res);
-        }).catch(err => {
-            // Можно reject
-            resolve('FETCH_ERROR');
-        });
+        fetch(req)
+            .then(res => resolve(res))
+            .catch(err => resolve('FETCH_ERROR'));
     });
 
     // Таймер
     const timer = new Promise( (resolve, reject) => {
         setTimeout(() => resolve('TIME_OUT'), timeout);
     });
-
 
     return Promise.race([networkRequest, timer]).then(res => {
 
