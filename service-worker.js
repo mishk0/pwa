@@ -11,18 +11,24 @@ var filesToCache = [
 ];
 
 self.addEventListener('install', e => {
-    e.waitUntil(
-        self.skipWaiting(),
-        caches.open(CACHE_NAME).then(cache => {
-            return cache.addAll(filesToCache);
-        })
-    );
+
+    const promise = caches.open(CACHE_NAME)
+        .then(cache => cache.addAll(filesToCache))
+        .then(() => self.skipWaiting())
+        .then(() => console.log('>> installed'));
+
+    e.waitUntil(promise);
+
 });
 
 self.addEventListener('activate', e => {
-    self.clients.claim();
 
-    e.waitUntil(deleteObsoleteAssets());
+    const promise = deleteObsoleteAssets()
+        .then(() => self.clients.claim())
+        .then(() => console.log('>> activated'));
+
+    e.waitUntil(promise);
+
 });
 
 self.addEventListener('fetch', e => {
