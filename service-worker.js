@@ -10,22 +10,22 @@ var filesToCache = [
     './assets/styles.css'
 ];
 
-self.addEventListener('install', function(e) {
+self.addEventListener('install', e => {
     e.waitUntil(
         self.skipWaiting(),
-        caches.open(CACHE_NAME).then(function(cache) {
+        caches.open(CACHE_NAME).then(cache => {
             return cache.addAll(filesToCache);
         })
     );
 });
 
-self.addEventListener('activate', function(e) {
+self.addEventListener('activate', e => {
     self.clients.claim();
 
     e.waitUntil(deleteObsoleteAssets());
 });
 
-self.addEventListener('fetch', function(e) {
+self.addEventListener('fetch', e => {
     if (isApiCall(e.request.url)) {
         e.respondWith(networkFirst(e.request));
     } else {
@@ -34,8 +34,8 @@ self.addEventListener('fetch', function(e) {
 });
 
 function networkFirst(req) {
-    return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
+    return caches.open(CACHE_NAME).then(cache => {
+        return fetch(req).then(res => {
             cache.put(req, res.clone());
             return res;
         }).catch(err => {
@@ -47,13 +47,13 @@ function networkFirst(req) {
 }
 
 function cacheFirst(req) {
-    return caches.match(req).then(function(cache) {
+    return caches.match(req).then(cache => {
         if (cache) {
             return cache;
         }
 
         return caches.open(CACHE_NAME).then(cache => {
-            return fetch(req).then(function(res) {
+            return fetch(req).then(res => {
                 cache.put(req, res.clone());
                 return res;
             });
@@ -66,8 +66,8 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
+    return caches.keys().then(keys => {
+        return Promise.all(keys.map(key => {
             if (key !== CACHE_NAME) {
                 return caches.delete(key);
             }
