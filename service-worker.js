@@ -3,6 +3,7 @@
 const CACHE_NAME = 'v1';
 const FETCH_TIMEOUT = 300;
 var API_URL = 'https://api.fixer.io';
+var CURRENCY_URL = "";
 
 var filesToCache = [
     './index.html',
@@ -38,27 +39,29 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
 
     if (isApiCall(e.request.url)) {
+        //записываем урл для курса
+        CURRENCY_URL = e.request.url;
         e.respondWith(networkFirst(e.request));
     } else {
         e.respondWith(cacheFirst(e.request));
     }
 });
 
-self.addEventListener('sync', function(e){
-    let _apiURL = 'https://api.fixer.io/latest?base=RUB';
+self.addEventListener('sync', function (e) {
     e.waitUntil(
-        fetch(_apiURL, myInit)
+        fetch(CURRENCY_URL, myInit)
             .then((res) => {
                 caches.open(CACHE_NAME).then(function (cache) {
-                    cache.put(_apiURL, res);
+                    cache.put(CURRENCY_URL, res).then(function () {
+                        console.log('Updated via sync: ' + CURRENCY_URL);
+                        self.registration.showNotification('Exchange rates updated in background');
+                    });
                 })
-                self.registration.showNotification('Exchange rates updated in background');
             })
-            .catch((err) =>{
+            .catch((err) => {
                 self.registration.showNotification(err);
             })
     );
-    
 })
 
 function networkFirst(req) {
@@ -123,7 +126,6 @@ function deleteObsoleteAssets() {
     //         }
     //     }));
     // })
-    
     
     return caches.open(CACHE_NAME)
     .then(cache => cache.matchAll())
