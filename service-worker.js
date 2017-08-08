@@ -1,8 +1,8 @@
 'use strict';
 
 const CACHE_NAME = 'v1';
-var API_URL = 'https://api.fixer.io';
-
+const API_URL = 'https://api.fixer.io';
+const DELAY = 300;
 var filesToCache = [
     './',
     './index.html',
@@ -33,23 +33,51 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
     if (isApiCall(e.request.url)) {
-        e.respondWith(networkFirst(e.request));
+        e.respondWith(networkFirst(e.request, DELAY));
     } else {
         e.respondWith(cacheFirst(e.request));
     }
 });
 
-function networkFirst(req) {
-    return caches.open(CACHE_NAME).then(cache => {
-        return fetch(req).then(res => {
-            cache.put(req, res.clone());
-            return res;
-        }).catch(err => {
-            console.log('Error on networkFirst', err);
+function networkFirst(req, timeout) {
 
-            return caches.match(req);
+    // Запрос в сеть
+    const networkRequest = new Promise( (resolve, reject) => {
+        fetch(req).then(res => {
+            console.log('Network', res);
+            resolve(res);
+        }).catch(err => {
+            // Можно reject
+            resolve('FETCH_ERROR');
         });
-    })
+    });
+
+    // Таймер
+    const timer = new Promise( (resolve, reject) => {
+        setTimeout(() => resolve('TIME_OUT'), timeout);
+    });
+
+
+    return Promise.race([networkRequest, timer]).then(res => {
+
+        if (res === 'TIME_OUT' || res === 'FETCH_ERROR') {
+            return caches.match(req).then(res => {
+                if (res) {
+                    return res;
+                }
+                // Если кэш пустой и плохое соединение
+                // TODO: Создать бланковый ответ или повторить запрос с большим таймаутом
+                return new Response();
+            });
+
+        } else {
+            return caches.open(CACHE_NAME).then(cache => {
+                cache.put(req, res.clone());
+            }).then(() => res);
+        }
+
+    });
+
 }
 
 function cacheFirst(req) {

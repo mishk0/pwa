@@ -24,7 +24,10 @@
 
     function getCurrency() {
         return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
+            .then(res => {
+                console.log(res);
+                return res.json();
+            })
             .then(data => processRates(data));
     }
 
