@@ -8,18 +8,10 @@ var CURRENCY_URL = "";
 var filesToCache = [
     './index.html',
     './assets/app.js',
-    './assets/styles.css'
+    './assets/styles.css',
+    './assets/icons/icon152.png',
+    './assets/refresh.svg'
 ];
-
-//для запросов к apiнельзя использовать кэш
-var noCacheHeader = new Headers();
-noCacheHeader.append('pragma', 'no-cache');
-noCacheHeader.append('cache-control', 'no-cache');
-
-var myInit = {
-  method: 'GET',
-  headers: noCacheHeader
-};
 
 self.addEventListener('install', function(e) {
     e.waitUntil(
@@ -49,12 +41,15 @@ self.addEventListener('fetch', function(e) {
 
 self.addEventListener('sync', function (e) {
     e.waitUntil(
-        fetch(CURRENCY_URL, myInit)
+        fetch(CURRENCY_URL)
             .then((res) => {
                 caches.open(CACHE_NAME).then(function (cache) {
                     cache.put(CURRENCY_URL, res).then(function () {
                         console.log('Updated via sync: ' + CURRENCY_URL);
-                        self.registration.showNotification('Exchange rates updated in background');
+                        self.registration.showNotification('Updated via Sync', {
+                            body: 'Exchange rates',
+                            icon: './assets/icons/icon152.png'
+                        });
                     });
                 })
             })
@@ -72,11 +67,12 @@ function networkFirst(req) {
             var timeout = setTimeout(function () {
                 //если самый первый запрос не пройдет таймаут, то ничего не загрузится, из-за того, что первому запросу из кэша нечего
                 //взять, поэтому пока кэш пустой, нельзя использовать таймаут, т.е. дать возможность использовать максимальное время fetch
+
                 caches.match(req).then((res)=>{
                     if (res) reject(new Error('Request timed out'));
                 })
             }, FETCH_TIMEOUT);
-            fetch(req, myInit)
+            fetch(req)
                 .then(function (res) {
                     clearTimeout(timeout);
                     resolve(res);
@@ -119,14 +115,10 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    // return caches.keys().then(function(keys) {
-    //     return Promise.all(keys.map(function(key) {
-    //         if (key !== CACHE_NAME) {
-    //             return caches.delete(key);
-    //         }
-    //     }));
-    // })
-    
+    //для обновления ресурсов нам больше не нужна версия кэша,
+    //все можно хранить в одной таблице и просто менять имена ресурсов,
+    //index.html обновляется всегда, чтобы подтянуть новые ресурсы
+
     return caches.open(CACHE_NAME)
     .then(cache => cache.matchAll())
     .then((cache) => {
