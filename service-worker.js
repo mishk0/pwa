@@ -33,19 +33,22 @@ self.addEventListener('fetch', function(e) {
     }
 });
 
-// self.addEventListener('sync', event => {  
-//     if (event.tag === 'submit') {
-//         return caches.open(CACHE_NAME).then(cache => {
-//             return cache.keys(API_URL + '/latest?base=RUB').then(res => {
-//                 if (res.length > 0) {
-//                     return cache.delete(API_URL + '/latest?base=RUB').then(res => {
-//                         return fetch(API_URL + '/latest?base=RUB');
-//                     })
-//                 }
-//             });
-//         });
-//     }
-// });
+self.addEventListener('sync', event => {  
+    if (event.tag === 'submit') {
+        return caches.open(CACHE_NAME).then(cache => {
+            return cache.keys(API_URL + '/latest?base=RUB').then(res => {
+                if (res.length > 0) {
+                    return cache.delete(API_URL + '/latest?base=RUB').then(res => {
+                        return fetch(API_URL + '/latest?base=RUB')
+                            .then(() => self.registration.showNotification('Exchange rates', {
+                                body: 'Currency rates updated'
+                            }));
+                    })
+                }
+            });
+        });
+    }
+});
 
 /**
  * 1. Реализовать в воркере networkFrist(request, timeout). 

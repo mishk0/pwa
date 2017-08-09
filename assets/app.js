@@ -12,6 +12,7 @@
     function init() {
         updateCurrency();
         initReloadBtn();
+        initNotification();
 
         setInterval(() => {
             updateCurrency();
@@ -86,19 +87,25 @@
         });
     }
 
+    function initNotification() {
+        Notification.requestPermission(permission => {  
+            console.log('permission:', permission);
+        });
+    }
+
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
             .register('./service-worker.js')
             .then(() => { console.log('Service Worker Registered') });
 
-        // navigator.serviceWorker.ready  
-        //     .then(registration => {
-        //         reloadBtn.addEventListener('click', () => {
-        //             registration.sync.register('submit').then(() => {
-        //                 console.log('sync registered!');
-        //             });
-        //         });
-        //     });            
+        navigator.serviceWorker.ready  
+            .then(registration => {
+                reloadBtn.addEventListener('click', () => {
+                    registration.sync.register('submit').then(() => {
+                        console.log('sync registered!');
+                    });
+                });
+            });
     }
 
     init();
