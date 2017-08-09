@@ -6,6 +6,7 @@
     var currenciesNode = document.querySelector('.currencies');
     var loaderNode = document.querySelector('.loader');
     var lastUpdateNode = document.querySelector('.lastUpdate_date');
+    var reloadBtn = document.querySelector('.js-reload-currency');
     var _lastData;
 
     function init() {
@@ -80,8 +81,6 @@
     }
 
     function initReloadBtn(btn) {
-        var reloadBtn = document.querySelector('.js-reload-currency');
-        
         reloadBtn.addEventListener('click', function () {
             updateCurrency();
         });
@@ -91,6 +90,15 @@
         navigator.serviceWorker
             .register('./service-worker.js')
             .then(() => { console.log('Service Worker Registered') });
+
+        // navigator.serviceWorker.ready  
+        //     .then(registration => {
+        //         reloadBtn.addEventListener('click', () => {
+        //             registration.sync.register('submit').then(() => {
+        //                 console.log('sync registered!');
+        //             });
+        //         });
+        //     });            
     }
 
     init();

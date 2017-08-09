@@ -32,6 +32,21 @@ self.addEventListener('fetch', function(e) {
         e.respondWith(cacheFirst(e.request));
     }
 });
+
+// self.addEventListener('sync', event => {  
+//     if (event.tag === 'submit') {
+//         return caches.open(CACHE_NAME).then(cache => {
+//             return cache.keys(API_URL + '/latest?base=RUB').then(res => {
+//                 if (res.length > 0) {
+//                     return cache.delete(API_URL + '/latest?base=RUB').then(res => {
+//                         return fetch(API_URL + '/latest?base=RUB');
+//                     })
+//                 }
+//             });
+//         });
+//     }
+// });
+
 /**
  * 1. Реализовать в воркере networkFrist(request, timeout). 
  * 
