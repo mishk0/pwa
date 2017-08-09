@@ -81,9 +81,15 @@ function networkFirst(req, timeout) {
                 if (res) {
                     return res;
                 }
-                // Если кэш пустой и плохое соединение
-                // TODO: Создать бланковый ответ или повторить запрос с большим таймаутом
-                return new Response();
+                // Если кэш пустой и плохое соединение, то заново отправляем запрос и ждем столько, сколько нужно
+                return fetch(req)
+                    .then(res => {
+                        return caches.open(CACHE_NAME)
+                            .then(cache => {
+                                cache.put(req, res.clone())
+                            })
+                            .then(() => res);
+                    });
             });
 
         } else {
