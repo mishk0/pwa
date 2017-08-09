@@ -23,26 +23,24 @@
         });
     }
 
+    /**
+     * 3. Улучшить клиентскую функцию getCurrency, которая изначально должна пытаться доставать данные из кеша 
+     * 
+     * @returns 
+     */
     function getCurrency() {
-        if (window.caches) {
-            window.caches.open(CACHE_NAME).then(cache => {
-                cache.match(API_URL + '/latest?base=RUB')
-                    .then(res => {
-                        if (res) {
-                            // console.log(res)
-                        }
+        return window.caches.open(CACHE_NAME).then(cache => {
+            return cache.match(API_URL + '/latest?base=RUB')
+                .then(res => {
+                    if (res) {
+                        return res.json().then(data => processRates(data));
+                    }
 
-                        // console.log('1')
-                    })
-           })
-        }
-
-        return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
-            .then(data => {
-                // console.log(data)
-                return processRates(data)
-            });
+                    return fetch(API_URL + '/latest?base=RUB')
+                        .then(res => res.json())
+                        .then(data => processRates(data));
+                })
+        })
     }
 
     function render(data) {

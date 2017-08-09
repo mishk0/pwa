@@ -48,7 +48,6 @@ function networkFirst(req, timeout) {
             }, timeout);
 
             return fetch(req).then(function(res) {
-                console.log(req)
                 cache.put(req, res.clone());
 
                 clearTimeout(timer);
