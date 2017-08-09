@@ -41,11 +41,17 @@ self.addEventListener('fetch', e => {
 });
 
 self.addEventListener('sync', e => {
+    const req = API_URL + '/latest?base=RUB';
     if (e.tag == 'update') {
         e.waitUntil(
-            fetch(API_URL + '/latest?base=RUB')
-                // TODO: Put in cache
-                .then(res => res)
+            fetch(req)
+                .then(res => {
+                    caches.open(CACHE_NAME)
+                        .then(cache => {
+                            cache.put(req, res.clone());
+                        });
+                    return res;
+                })
                 .then(() => {
                     self.registration.showNotification('Курс валют обновился!');
                 })
