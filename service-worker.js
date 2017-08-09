@@ -5,6 +5,7 @@ const CACHE_STATIC = 'static';
 const API_URL = 'https://api.fixer.io';
 const DELAY = 300;
 const ORIGIN = location.origin;
+const PUSH_MESSAGE = 'Курс валют обновился!';
 const filesToCache = [
     './',
     './index.html',
@@ -53,7 +54,7 @@ self.addEventListener('sync', e => {
                     return res;
                 })
                 .then(() => {
-                    self.registration.showNotification('Курс валют обновился!');
+                    self.registration.showNotification(PUSH_MESSAGE);
                 })
         );
     }
