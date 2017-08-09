@@ -92,4 +92,24 @@ body {
     padding-left: 20px;
 }
 
+.reload {
+    display: flex;
+    justify-content: center;
+    margin: 1em 0;
+}
+
+.reload__btn {
+    box-shadow: 0 1px 5px rgba(255, 255, 255, .34);
+    width: 90px;
+    height: 35px;
+    background-color: #cecece;
+    border: 1px solid #e0e0e0;
+    border-radius: 3px;
+    color: #333;
+    line-height: 1.5;
+    font-size: 16px;
+    text-shadow: 1px solid rgba(255, 255, 255, 0.8);
+    outline: none;
+}
+
 @keyframes rotate{from{transform:rotate(0deg)} to {transform:rotate(360deg)}}

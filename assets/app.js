@@ -10,10 +10,11 @@
 
     function init() {
         updateCurrency();
+        initReloadBtn();
 
-        setInterval(() => {
-            updateCurrency();
-        }, AUTO_UPDATE_SEC * 1000);
+        // setInterval(() => {
+        //     updateCurrency();
+        // }, AUTO_UPDATE_SEC * 1000);
     }
 
     function updateCurrency() {
@@ -76,6 +77,14 @@
                 <span class="currency-rate ${additionClass}">${data[item]}</span>
             </div>`;
         }, '');
+    }
+
+    function initReloadBtn(btn) {
+        var reloadBtn = document.querySelector('.js-reload-currency');
+        
+        reloadBtn.addEventListener('click', function () {
+            updateCurrency();
+        });
     }
 
     if ('serviceWorker' in navigator) {
