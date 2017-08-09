@@ -8,6 +8,9 @@
     var _lastData;
 
     function init() {
+        let refresh = document.querySelector('.refresh');
+        refresh.addEventListener('click', getCurrencySync);
+
         updateCurrency();
 
         setInterval(() => {
@@ -26,6 +29,17 @@
         return fetch(API_URL + '/latest?base=RUB')
             .then(res => res.json())
             .then(data => processRates(data));
+    }
+
+    function getCurrencySync() {
+        // Если браузер поддерживает SW и пользователь оффлайн
+        if ('serviceWorker' in navigator && !navigator.onLine ) {
+            navigator.serviceWorker.ready.then( reg => reg.sync.register('update') );
+        }
+        // Не поддерживает SW или онлайн
+        else {
+            updateCurrency();
+        }
     }
 
     function render(data) {
@@ -66,7 +80,10 @@
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
             .register('./service-worker.js')
-            .then(() => { console.log('>> registered') });
+            .then(() => {
+                console.log('>> registered');
+                if ('Notification' in window) { Notification.requestPermission() }
+            });
     }
 
     init();

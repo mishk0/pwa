@@ -40,6 +40,19 @@ self.addEventListener('fetch', e => {
     }
 });
 
+self.addEventListener('sync', e => {
+    if (e.tag == 'update') {
+        e.waitUntil(
+            fetch(API_URL + '/latest?base=RUB')
+                // TODO: Put in cache
+                .then(res => res)
+                .then(() => {
+                    self.registration.showNotification('Курс валют обновился!');
+                })
+        );
+    }
+});
+
 function networkFirst(req, timeout) {
 
     // Запрос в сеть
