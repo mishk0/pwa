@@ -43,12 +43,16 @@ body {
 }
 
 .refresh {
+    display: block;
+    position: absolute;
+    right: 15px;
+    top: 15px;
     border: none;
     outline: none;
     cursor: pointer;
     width: 22px;
     height: 22px;
-    background: none;
+    background: url('./refresh.svg');
 }
 
 .refresh-pic {
