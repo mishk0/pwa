@@ -13,9 +13,9 @@
         updateCurrency();
         initReloadBtn();
 
-        // setInterval(() => {
-        //     updateCurrency();
-        // }, AUTO_UPDATE_SEC * 1000);
+        setInterval(() => {
+            updateCurrency();
+        }, AUTO_UPDATE_SEC * 1000);
     }
 
     function updateCurrency() {
