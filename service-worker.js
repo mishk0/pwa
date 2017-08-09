@@ -1,59 +1,115 @@
 'use strict';
 
 const CACHE_NAME = 'v1';
-var API_URL = 'https://api.fixer.io';
-
-var filesToCache = [
+const CACHE_STATIC = 'static';
+const API_URL = 'https://api.fixer.io';
+const DELAY = 300;
+const ORIGIN = location.origin;
+const PUSH_MESSAGE = 'Курс валют обновился!';
+const filesToCache = [
     './',
     './index.html',
     './assets/app.js',
     './assets/styles.css'
 ];
 
-self.addEventListener('install', function(e) {
-    e.waitUntil(
-        self.skipWaiting(),
-        caches.open(CACHE_NAME).then(function(cache) {
-            return cache.addAll(filesToCache);
-        })
-    );
+self.addEventListener('install', e => {
+
+    const promise = caches.open(CACHE_STATIC)
+        .then(cache => updateCache(cache))
+        .then(() => self.skipWaiting())
+        .then(() => console.log('>> installed'));
+
+    e.waitUntil(promise);
+
 });
 
-self.addEventListener('activate', function(e) {
-    self.clients.claim();
+self.addEventListener('activate', e => {
 
-    e.waitUntil(deleteObsoleteAssets());
+    const promise = self.clients.claim()
+        .then(() => console.log('>> activated'));
+
+    e.waitUntil(promise);
+
 });
 
-self.addEventListener('fetch', function(e) {
+self.addEventListener('fetch', e => {
     if (isApiCall(e.request.url)) {
-        e.respondWith(networkFirst(e.request));
+        e.respondWith(networkFirst(e.request, DELAY));
     } else {
         e.respondWith(cacheFirst(e.request));
     }
 });
 
-function networkFirst(req) {
-    return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
-            cache.put(req, res.clone());
-            return res;
-        }).catch(err => {
-            console.log('Error on networkFirst', err);
+self.addEventListener('sync', e => {
+    const req = API_URL + '/latest?base=RUB';
+    if (e.tag == 'update') {
+        e.waitUntil(
+            fetch(req)
+                .then(res => {
+                    caches.open(CACHE_NAME)
+                        .then(cache => {
+                            cache.put(req, res.clone());
+                        });
+                    return res;
+                })
+                .then(() => {
+                    self.registration.showNotification(PUSH_MESSAGE);
+                })
+        );
+    }
+});
 
-            return caches.match(req);
-        });
-    })
+function networkFirst(req, timeout) {
+
+    // Запрос в сеть
+    const networkRequest = new Promise( (resolve, reject) => {
+        fetch(req)
+            .then(res => resolve(res))
+            .catch(err => resolve('FETCH_ERROR'));
+    });
+
+    // Таймер
+    const timer = new Promise( (resolve, reject) => {
+        setTimeout(() => resolve('TIME_OUT'), timeout);
+    });
+
+    return Promise.race([networkRequest, timer]).then(res => {
+
+        if (res === 'TIME_OUT' || res === 'FETCH_ERROR') {
+            return caches.match(req).then(res => {
+                if (res) {
+                    return res;
+                }
+                // Если кэш пустой и плохое соединение, то заново отправляем запрос и ждем столько, сколько нужно
+                return fetch(req)
+                    .then(res => {
+                        return caches.open(CACHE_NAME)
+                            .then(cache => {
+                                cache.put(req, res.clone())
+                            })
+                            .then(() => res);
+                    });
+            });
+
+        } else {
+            return caches.open(CACHE_NAME).then(cache => {
+                cache.put(req, res.clone());
+            }).then(() => res);
+        }
+
+    });
+
 }
 
 function cacheFirst(req) {
-    return caches.match(req).then(function(cache) {
+    return caches.match(req).then(cache => {
         if (cache) {
             return cache;
         }
 
         return caches.open(CACHE_NAME).then(cache => {
-            return fetch(req).then(function(res) {
+            return fetch(req).then(res => {
                 cache.put(req, res.clone());
                 return res;
             });
@@ -65,12 +121,48 @@ function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
 }
 
-function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
-            }
-        }));
+// Обновляет кэш статики
+function updateCache(cache) {
+
+    cache.keys().then(keys => {
+        let urlsToCache = convertUrls(filesToCache);
+        let urlsAlreadyInCache = [];
+        keys.map(item => urlsAlreadyInCache.push(item.url));
+
+        let urlsToUpdate = manageAssets(urlsToCache, urlsAlreadyInCache);
+
+        cache.addAll(urlsToUpdate.add)
+            .then(() => {
+                urlsToUpdate.del.map(item => cache.delete(item));
+            });
+    });
+
+}
+
+// Compare arrays and return object with assets to add / delete
+function manageAssets(arrA, arrB) {
+    let add = [],
+        del = [];
+
+    arrA.map(item => {
+        if (!arrB.includes(item)) {
+            add.push(item);
+        }
+    });
+
+    arrB.map(item => {
+        if (!arrA.includes(item)) {
+            del.push(item);
+        }
     })
+
+    return {
+        add,
+        del
+    }
+}
+
+// Convert URLs from relative to absolute
+function convertUrls(array) {
+    return array.map(item => ORIGIN + item.substr(1));
 }

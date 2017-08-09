@@ -8,24 +8,55 @@
     var _lastData;
 
     function init() {
-        updateCurrency();
+        let refresh = document.querySelector('.refresh');
+        refresh.addEventListener('click', getCurrencySync);
+
+        updateCurrency(true);
 
         setInterval(() => {
             updateCurrency();
         }, AUTO_UPDATE_SEC * 1000);
     }
 
-    function updateCurrency() {
-        return getCurrency().then(data => {
+    function updateCurrency(initial) {
+        return getCurrency(initial).then(data => {
             render(data);
             _lastData = data;
         });
     }
 
-    function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
-            .then(data => processRates(data));
+    function getCurrency(initial = false) {
+        const req = API_URL + '/latest?base=RUB';
+
+        // Первый запрос при загрузке страницы
+        if (initial) {
+            return caches.match(req)
+                .then(cache => {
+                    // Если есть кэш, возвращаем cache
+                    if (cache) return cache;
+                    // Если кэша нет, возвращаем fetch
+                    return fetch(req);
+                })
+                .then(res => res.json())
+                .then(data => processRates(data));
+        }
+        // Все остальные запросы
+        else {
+            return fetch(req)
+                .then(res => res.json())
+                .then(data => processRates(data));
+        }
+    }
+
+    function getCurrencySync() {
+        // Если браузер поддерживает SW и пользователь оффлайн
+        if ('serviceWorker' in navigator && !navigator.onLine ) {
+            navigator.serviceWorker.ready.then( reg => reg.sync.register('update') );
+        }
+        // Не поддерживает SW или онлайн
+        else {
+            updateCurrency();
+        }
     }
 
     function render(data) {
@@ -66,7 +97,10 @@
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker
             .register('./service-worker.js')
-            .then(() => { console.log('Service Worker Registered') });
+            .then(() => {
+                console.log('>> registered');
+                if ('Notification' in window) { Notification.requestPermission() }
+            });
     }
 
     init();
