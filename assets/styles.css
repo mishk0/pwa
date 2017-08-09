@@ -53,6 +53,8 @@ body {
     width: 22px;
     height: 22px;
     background: url('./refresh.svg');
+    background-size: contain;
+    background-repeat: no-repeat;
 }
 
 .refresh-pic {
