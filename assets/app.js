@@ -1,5 +1,6 @@
 (function() {
     'use strict';
+    var CACHE_NAME = 'v1';
     var API_URL = 'https://api.fixer.io';
     var AUTO_UPDATE_SEC = 5;
     var currenciesNode = document.querySelector('.currencies');
@@ -23,9 +24,25 @@
     }
 
     function getCurrency() {
+        if (window.caches) {
+            window.caches.open(CACHE_NAME).then(cache => {
+                cache.match(API_URL + '/latest?base=RUB')
+                    .then(res => {
+                        if (res) {
+                            // console.log(res)
+                        }
+
+                        // console.log('1')
+                    })
+           })
+        }
+
         return fetch(API_URL + '/latest?base=RUB')
             .then(res => res.json())
-            .then(data => processRates(data));
+            .then(data => {
+                // console.log(data)
+                return processRates(data)
+            });
     }
 
     function render(data) {

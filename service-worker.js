@@ -32,7 +32,13 @@ self.addEventListener('fetch', function(e) {
         e.respondWith(cacheFirst(e.request));
     }
 });
-
+/**
+ * 1. Реализовать в воркере networkFrist(request, timeout). 
+ * 
+ * @param {any} req 
+ * @param {any} timeout 
+ * @returns 
+ */
 function networkFirst(req, timeout) {
     return caches.open(CACHE_NAME)
         .then(function(cache) {
@@ -42,6 +48,7 @@ function networkFirst(req, timeout) {
             }, timeout);
 
             return fetch(req).then(function(res) {
+                console.log(req)
                 cache.put(req, res.clone());
 
                 clearTimeout(timer);
@@ -79,7 +86,12 @@ function cacheFirst(req) {
 function isApiCall(url) {
     return url.indexOf(API_URL) !== -1;
 }
-
+/**
+ * 2. Сделать "умное" обновление кеша. 
+ * 
+ * @param {any} files 
+ * @returns 
+ */
 function deleteObsoleteAssets(files) {
     return caches.open(CACHE_NAME).then(cache => {
         // если есть в кэше, но нет в массиве - удалить
@@ -106,10 +118,6 @@ function deleteObsoleteAssets(files) {
                     }
                 })
             });
-
-
-            cache.keys().then(res => console.log(res));
-            
         });
     })
 }
