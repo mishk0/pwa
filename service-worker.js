@@ -83,12 +83,11 @@ function deleteObsoleteAssets() {
       cache.keys().then(function(keys) {
         keys.forEach(function(request, index, array) {
           let url = request.url.replace (/^[a-z]{4,}\:\/{2}[a-z]{1,}\:[0-9]{1,4}.(.*)/, './$1');
-          if(filesToCache.indexOf(url) == -1)
+          if(!isApiCall(url)&&(filesToCache.indexOf(url) == -1))
           {
             cache.delete(request);
           }
         });
       });
     })
-
 }

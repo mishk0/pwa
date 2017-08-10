@@ -23,26 +23,34 @@
     }
 
     function getCurrency() {
-        return fetch(API_URL + '/latest?base=RUB')
-            .then(res => res.json())
-            .then(data => processRates(data));
+        return new Promise((resolve) => {
+          let req = API_URL + '/latest?base=RUB';
+          caches.match(req)
+            .then(res => {
+              if (res) {
+                return res.json();
+              }
+              else
+              {
+                fetch(req)
+                  .then(res => res.json())
+                  .then(data => processRates(data))
+                  .then(data => resolve(data));
+              }
+            })
+            .then(data => {
+              if(data) {
+                resolve(processRates(data));
+              }
+            });
+        });
     }
 
     function render(data) {
         currenciesNode.innerHTML = createTmpl(data.rates);
         lastUpdateNode.innerHTML = data.date;
-
         loaderNode.style.display = 'none';
-
-        // testPromise().then(res => {console.log(res + "2")});
     }
-
-    // function testPromise() {
-    //   return new Promise((resolve) => {
-    //     resolve("1");
-    //   }).then(res => {return res + "3"})
-    //     .then(res => {return res + "1"});
-    // }
 
     function processRates(data) {
         return Object.keys(data.rates).reduce((res, currency) => {
