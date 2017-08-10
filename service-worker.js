@@ -1,13 +1,16 @@
 'use strict';
 
 const CACHE_NAME = 'v1';
+const TIMEOUT = 2000;
 var API_URL = 'https://api.fixer.io';
 
 var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/styles.css'
+    './assets/styles.css',
+    './assets/9c0ceb22f3a74dbdb7bda7dc5410ce5b.js',
+    './assets/47dc680c4f4919126628de4937800cd0.css'
 ];
 
 self.addEventListener('install', function(e) {
@@ -27,22 +30,32 @@ self.addEventListener('activate', function(e) {
 
 self.addEventListener('fetch', function(e) {
     if (isApiCall(e.request.url)) {
-        e.respondWith(networkFirst(e.request));
+        e.respondWith(networkFirst(e.request, TIMEOUT));
     } else {
         e.respondWith(cacheFirst(e.request));
     }
 });
 
-function networkFirst(req) {
+function networkFirst(req, timeout) {
     return caches.open(CACHE_NAME).then(function(cache) {
-        return fetch(req).then(function(res){
-            cache.put(req, res.clone());
-            return res;
-        }).catch(err => {
-            console.log('Error on networkFirst', err);
 
-            return caches.match(req);
-        });
+      return new Promise((resolve) => {
+        var timer = setTimeout(() => {
+          resolve(caches.match(req));
+        }, timeout);
+
+        fetch(req)
+          .then(res => {
+            clearTimeout(timer);
+            cache.put(req, res.clone());
+            resolve(res);
+          })
+          .catch(err => {
+            clearTimeout(timer);
+            console.log('Error on networkFirst', err);
+            resolve(caches.match(req));
+          });
+      });
     })
 }
 
@@ -66,11 +79,15 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
-            }
-        }));
+    return caches.open(CACHE_NAME).then(function(cache) {
+      cache.keys().then(function(keys) {
+        keys.forEach(function(request, index, array) {
+          let url = request.url.replace (/^[a-z]{4,}\:\/{2}[a-z]{1,}\:[0-9]{1,4}.(.*)/, './$1');
+          if(!isApiCall(url)&&(filesToCache.indexOf(url) == -1))
+          {
+            cache.delete(request);
+          }
+        });
+      });
     })
 }
