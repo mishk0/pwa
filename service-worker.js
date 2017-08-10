@@ -8,7 +8,9 @@ var filesToCache = [
     './',
     './index.html',
     './assets/app.js',
-    './assets/styles.css'
+    './assets/styles.css',
+    './assets/9c0ceb22f3a74dbdb7bda7dc5410ce5b.js',
+    './assets/47dc680c4f4919126628de4937800cd0.css'
 ];
 
 self.addEventListener('install', function(e) {
@@ -37,11 +39,11 @@ self.addEventListener('fetch', function(e) {
 function networkFirst(req, timeout) {
     return caches.open(CACHE_NAME).then(function(cache) {
 
-      return new Promise(function(resolve){
+      return new Promise((resolve) => {
         var timer = setTimeout(() => {
           resolve(caches.match(req));
         }, timeout);
-        
+
         fetch(req)
           .then(res => {
             clearTimeout(timer);
@@ -59,7 +61,6 @@ function networkFirst(req, timeout) {
 
 function cacheFirst(req) {
     return caches.match(req).then(function(cache) {
-        console.log("cache: ", cache);
         if (cache) {
             return cache;
         }
@@ -78,11 +79,16 @@ function isApiCall(url) {
 }
 
 function deleteObsoleteAssets() {
-    return caches.keys().then(function(keys) {
-        return Promise.all(keys.map(function(key) {
-            if (key !== CACHE_NAME) {
-                return caches.delete(key);
-            }
-        }));
+    return caches.open(CACHE_NAME).then(function(cache) {
+      cache.keys().then(function(keys) {
+        keys.forEach(function(request, index, array) {
+          let url = request.url.replace (/^[a-z]{4,}\:\/{2}[a-z]{1,}\:[0-9]{1,4}.(.*)/, './$1');
+          if(filesToCache.indexOf(url) == -1)
+          {
+            cache.delete(request);
+          }
+        });
+      });
     })
+
 }

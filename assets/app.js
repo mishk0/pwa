@@ -33,7 +33,16 @@
         lastUpdateNode.innerHTML = data.date;
 
         loaderNode.style.display = 'none';
+
+        // testPromise().then(res => {console.log(res + "2")});
     }
+
+    // function testPromise() {
+    //   return new Promise((resolve) => {
+    //     resolve("1");
+    //   }).then(res => {return res + "3"})
+    //     .then(res => {return res + "1"});
+    // }
 
     function processRates(data) {
         return Object.keys(data.rates).reduce((res, currency) => {
