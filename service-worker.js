@@ -2,6 +2,7 @@
 
 const CACHE_NAME = 'v1';
 var API_URL = 'https://api.fixer.io';
+const API_URL_BASE = API_URL + '/latest?base=RUB';
 
 var filesToCache = [
     './',
@@ -36,10 +37,10 @@ self.addEventListener('fetch', function(e) {
 self.addEventListener('sync', event => {  
     if (event.tag === 'submit') {
         return caches.open(CACHE_NAME).then(cache => {
-            return cache.keys(API_URL + '/latest?base=RUB').then(res => {
-                if (res.length > 0) {
-                    return cache.delete(API_URL + '/latest?base=RUB').then(res => {
-                        return fetch(API_URL + '/latest?base=RUB')
+            return cache.keys(API_URL_BASE).then(keys => {
+                if (keys.length > 0) {
+                    return cache.delete(API_URL_BASE).then(res => {
+                        return fetch(API_URL_BASE)
                             .then(() => self.registration.showNotification('Exchange rates', {
                                 body: 'Currency rates updated'
                             }));
@@ -53,8 +54,8 @@ self.addEventListener('sync', event => {
 /**
  * 1. Реализовать в воркере networkFrist(request, timeout). 
  * 
- * @param {any} req 
- * @param {any} timeout 
+ * @param {Request} req 
+ * @param {number} timeout 
  * @returns 
  */
 function networkFirst(req, timeout) {
@@ -130,7 +131,7 @@ function deleteObsoleteAssets(files) {
             // если нет в кэше, но есть в массиве - добавить
             files.forEach(url => {
                 cache.keys(url).then(res => {
-                    if (res.length === 0) {
+                    if (res.length) {
                         return cache.add(url);
                     }
                 })
